@@ -79,11 +79,11 @@ User Login → Azure AD (MSAL) → Access Token → Axios Interceptor → API Ca
 
 **Components:**
 
-- `msalInstance`: Global MSAL PublicClientApplication
+- `getMsalInstance()`: Singleton function returning global MSAL PublicClientApplication
 - `useAuth`: Hook providing `isAuthenticated`, `user`, `getAccessToken`
 - `useLoginMutation`: Handles login with loading/error states
 - `useLogoutMutation`: Handles logout with loading/error states
-- Axios Interceptor: Automatically injects access token into API requests
+- Axios Interceptor: Automatically injects access token into API requests with enhanced error handling
 
 ### 2. Route Protection
 
@@ -326,11 +326,12 @@ npm run build
 
 ### Environment Variables
 
-- `VITE_AZURE_CLIENT_ID`: Azure AD application ID
-- `VITE_AZURE_TENANT_ID`: Azure AD tenant ID
-- `VITE_AZURE_REDIRECT_URI`: OAuth redirect URI
+- `VITE_MSAL_CLIENT_ID`: Azure AD application ID
+- `VITE_MSAL_AUTHORITY`: Azure AD authority URL (e.g., `https://login.microsoftonline.com/{tenant-id}`)
+- `VITE_MSAL_REDIRECT_URI`: OAuth redirect URI
+- `VITE_MSAL_POST_LOGOUT_REDIRECT_URI`: Post-logout redirect URI
+- `VITE_MSAL_SCOPE`: API scope for token requests
 - `VITE_API_BASE_URL`: Backend API base URL
-- `VITE_API_SCOPE`: API scope for token requests
 
 ### Hosting
 

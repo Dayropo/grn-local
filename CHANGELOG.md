@@ -9,17 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Stock Movement module with e-GTN search and e-GRN creation workflow
-- Type definitions for e-GTN and e-GRN data structures
-- API hooks for vendor search, PO line items, and GRN filtering
-- Dynamic routing for e-GRN creation with e-GTN number parameter
+- Comprehensive TypeScript type definitions for GRN/e-GTN/e-GRN data structures
+- New API layer architecture with centralized API hooks in `src/lib/api/`
+- Singleton pattern for MSAL instance management via `getMsalInstance()` function
+- Enhanced logging for authentication token acquisition and failures
+- New UI components: `date-range-picker`, `pagination`, `table-skeleton`
+- Dynamic route structure for e-GRN creation with e-GTN number parameter
 - Store history pages for both Direct Supply and Stock Movement modules
-- e-GRN report page for Direct Supply module
+- e-GRN report page for Direct Supply module with enhanced filtering
 
 ### Changed
 
-- Updated sidebar navigation with organized menu structure
-- Improved sidebar UX with cursor pointer on interactive elements
+- **BREAKING**: Refactored MSAL initialization to use singleton pattern with `getMsalInstance()`
+- Updated Axios instance to use `getMsalInstance()` instead of direct import
+- Migrated API scope environment variable from `VITE_API_SCOPE` to `VITE_MSAL_SCOPE`
+- Standardized MSAL environment variables with `VITE_MSAL_*` prefix:
+  - `VITE_CLIENT_ID` → `VITE_MSAL_CLIENT_ID`
+  - `VITE_AUTHORITY` → `VITE_MSAL_AUTHORITY`
+  - `VITE_REDIRECT_URI` → `VITE_MSAL_REDIRECT_URI`
+  - Added `VITE_MSAL_POST_LOGOUT_REDIRECT_URI`
+- Removed request timeout configuration from Axios (now handled server-side)
+- Simplified MSAL configuration by removing custom logger (uses browser defaults)
+- Enhanced error messages for token acquisition failures (silent vs popup)
+- Improved sidebar navigation with organized menu structure
 - Refactored protected route layout to use separate layout components
 - Updated login redirect to point to Direct Supply create-grn page
 
@@ -27,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed Header import casing inconsistency
 - Removed unused imports from protected route layout
+- Resolved MSAL instance initialization race conditions with singleton pattern
 
 ## [0.2.0] - 2025-01-08
 

@@ -133,11 +133,12 @@ Automatic conversion from weight (kg) to pieces:
 4. **Update `.env` with your credentials**
 
    ```env
-   VITE_AZURE_CLIENT_ID=your-azure-client-id
-   VITE_AZURE_TENANT_ID=your-azure-tenant-id
-   VITE_AZURE_REDIRECT_URI=http://localhost:5173
+   VITE_MSAL_CLIENT_ID=your-azure-client-id
+   VITE_MSAL_AUTHORITY=https://login.microsoftonline.com/your-tenant-id
+   VITE_MSAL_REDIRECT_URI=http://localhost:5173
+   VITE_MSAL_POST_LOGOUT_REDIRECT_URI=http://localhost:5173
+   VITE_MSAL_SCOPE=api://your-api-scope/.default
    VITE_API_BASE_URL=https://api.example.com
-   VITE_API_SCOPE=api://your-api-scope/.default
    ```
 
 5. **Start development server**

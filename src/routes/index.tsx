@@ -1,6 +1,6 @@
 import { FoodCoLogo, LandingBackground } from "@/assets/images"
 import { Button } from "@/components/ui/button"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ArrowLeftRight, Truck } from "lucide-react"
 
 export const Route = createFileRoute("/")({
@@ -8,6 +8,7 @@ export const Route = createFileRoute("/")({
 })
 
 function LandingPage() {
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-blue-50 ">
       <div className="mx-auto">
@@ -17,11 +18,7 @@ function LandingPage() {
             {/* Header */}
             <div className="space-y-2 ">
               <div className=" mb-12">
-                <img
-                  src={FoodCoLogo}
-                  alt="FoodCo Logo"
-                  className="max-w-sm"
-                />
+                <img src={FoodCoLogo} alt="FoodCo Logo" className="max-w-sm" />
               </div>
               <h1 className="text-xl font-bold text-primary">Goods Received Note System</h1>
               <div className="text-primary text-sm ">Create GRN & Monitor Incoming Stock</div>
@@ -33,7 +30,7 @@ function LandingPage() {
 
               {/* Direct Supply Option */}
               <Button
-                //onClick={() => navigate("/direct-supply/create")}
+                onClick={() => navigate({ to: "/direct-supply/create-grn" })}
                 className="w-full gap-4 h-[100px] text-left"
                 size="lg"
               >
