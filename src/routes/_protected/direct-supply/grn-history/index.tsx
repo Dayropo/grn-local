@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
-  '/_protected/stock-movement/create-egrn/$egtnNumber/',
+  '/_protected/direct-supply/grn-history/',
 )({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <div>Hello "/_protected/stock-movement/create-egrn/$egtnNumber/"!</div>
+  return <div>Hello "/_protected/direct-supply/store-history/"!</div>
 }

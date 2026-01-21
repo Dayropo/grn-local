@@ -169,7 +169,7 @@ export const useDownloadGrnMutation = () => {
 
       return data
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data) => {
       const link = document.createElement("a")
       link.href = _data.data.download_url
       link.setAttribute("download", "")

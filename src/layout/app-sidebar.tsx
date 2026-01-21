@@ -6,6 +6,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -14,8 +15,17 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import { Link } from "@tanstack/react-router"
-import { Archive, ChevronRight, LogOut, PackageCheck, type LucideIcon } from "lucide-react"
+import { Link, useLocation } from "@tanstack/react-router"
+import {
+  Archive,
+  ChevronRight,
+  FileBarChart,
+  FileText,
+  History,
+  LogOut,
+  PackageCheck,
+  type LucideIcon,
+} from "lucide-react"
 import React from "react"
 
 type items = Array<{
@@ -27,90 +37,122 @@ type items = Array<{
 }>
 
 export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const location = useLocation()
   const navItems: items = [
     {
-      title: "Direct Supply",
-      url: "#",
-      icon: PackageCheck,
-      isActive: true,
-      items: [
-        {
-          title: "Create GRN",
-          url: "/direct-supply/create-grn",
-        },
-        {
-          title: "Store History",
-          url: "/direct-supply/store-history",
-        },
-        {
-          title: "e-GRN Report",
-          url: "/direct-supply/egrn-report",
-        },
-      ],
+      title: "Create GRN",
+      url: "/grn-transfer/create-grn",
+      icon: FileText,
     },
+    { title: "GRN History", url: "/grn-transfer/grn-history", icon: History },
     {
-      title: "Stock Movement",
-      url: "#",
-      icon: Archive,
-      items: [
-        {
-          title: "Search e-GTN",
-          url: "/stock-movement/search-egtn",
-        },
-        // {
-        //   title: "Create e-GRN",
-        //   url: "/stock-movement/create-egrn",
-        // },
-        {
-          title: "Store History",
-          url: "/stock-movement/store-history",
-        },
-      ],
+      title: "Store Report",
+      url: "/grn-transfer/store-report",
+      icon: FileBarChart,
     },
+    // {
+    //   title: "Direct Supply",
+    //   url: "#",
+    //   icon: PackageCheck,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "Create GRN",
+    //       url: "/direct-supply/create-grn",
+    //     },
+    //     {
+    //       title: "Store History",
+    //       url: "/direct-supply/store-history",
+    //     },
+    //     {
+    //       title: "e-GRN Report",
+    //       url: "/direct-supply/egrn-report",
+    //     },
+    //   ],
+    // },
+    // {
+    //   title: "Stock Movement",
+    //   url: "#",
+    //   icon: Archive,
+    //   items: [
+    //     {
+    //       title: "Create GRN",
+    //       url: "/stock-movement/search-egtn",
+    //     },
+    //     { title: "GRN History", url: "/stock-movement/grn-history" },
+    //     {
+    //       title: "Store Report",
+    //       url: "/stock-movement/store-history",
+    //     },
+    //   ],
+    // },
   ]
 
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <div className="p-3 bg-white w-full flex items-center justify-center rounded-lg">
+        <div className="flex w-full items-center justify-center rounded-lg bg-white p-3">
           <img src={FoodCoLogo} alt="" className="h-12" />
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>Stock Movement</SidebarGroupLabel>
           <SidebarMenu>
-            {navItems.map(item => (
-              <Collapsible
-                key={item.title}
-                asChild
-                defaultOpen={item.isActive}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
+            {navItems.map(item => {
+              const hasItems = item.items && item.items.length > 0
+              const isActive =
+                location.pathname === item.url || location.pathname.startsWith(item.url + "/")
+
+              if (hasItems) {
+                return (
+                  <Collapsible
+                    key={item.title}
+                    asChild
+                    defaultOpen={item.isActive || isActive}
+                    className="group/collapsible"
+                  >
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton tooltip={item.title} isActive={isActive}>
+                          <item.icon className="size-4" />
+                          <span className="font-semibold">{item.title}</span>
+                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.items?.map(subItem => (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={location.pathname === subItem.url}
+                              >
+                                <Link to={subItem.url}>
+                                  <span>{subItem.title}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                )
+              }
+
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title} isActive={isActive}>
+                    <Link to={item.url}>
                       <item.icon className="size-4" />
                       <span className="font-semibold">{item.title}</span>
-                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.items?.map(subItem => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <Link to={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
+                    </Link>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
-              </Collapsible>
-            ))}
+              )
+            })}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

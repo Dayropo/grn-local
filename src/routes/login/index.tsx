@@ -76,7 +76,7 @@ function LoginPage() {
               {/* Goods Receipt Management Button */}
               <Button
                 size="lg"
-                className="h-14 w-full text-lg"
+                className="h-14 w-full text-lg rounded-md"
                 onClick={handleLogin}
                 disabled={isPending}
               >

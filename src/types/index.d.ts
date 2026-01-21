@@ -123,3 +123,35 @@ interface IGrnDetail {
     }
   }>
 }
+
+interface IDelivery {
+  id: number
+  object_id: string
+  delivery_id: string
+  source_location_id: string
+  source_location_name: string
+  destination_store: number
+  delivery_date: string
+  delivery_status_code: string
+  delivery_status: string
+  delivery_type_code: string
+  sales_order_reference: string
+  total_quantity_expected: number
+  total_quantity_received: number
+  is_fully_received: boolean
+  destination_store_name: string
+  line_items: Array<IDeliveryLineItem>
+  created_date: string
+}
+
+interface IDeliveryLineItem {
+  id: number
+  object_id: string
+  product_id: string
+  product_name: string
+  quantity_expected: string
+  quantity_received: string
+  unit_of_measurement: string
+  quantity_outstanding: number
+  is_fully_received: boolean
+}
