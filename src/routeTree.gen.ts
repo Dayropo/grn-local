@@ -9,34 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as GrnTransferIndexRouteImport } from './routes/grn-transfer/index'
 import { Route as GrnTransferProtectedRouteRouteImport } from './routes/grn-transfer/_protected/route'
+import { Route as GrnTransferProtectedViewGrnIndexRouteImport } from './routes/grn-transfer/_protected/view-grn/index'
 import { Route as GrnTransferProtectedStoreReportIndexRouteImport } from './routes/grn-transfer/_protected/store-report/index'
 import { Route as GrnTransferProtectedGrnHistoryIndexRouteImport } from './routes/grn-transfer/_protected/grn-history/index'
 import { Route as GrnTransferProtectedCreateGrnIndexRouteImport } from './routes/grn-transfer/_protected/create-grn/index'
-import { Route as ProtectedStockMovementGrnHistoryIndexRouteImport } from './routes/_protected/stock-movement/grn-history/index'
-import { Route as ProtectedDirectSupplyGrnHistoryIndexRouteImport } from './routes/_protected/direct-supply/grn-history/index'
-import { Route as ProtectedDirectSupplyEgrnReportIndexRouteImport } from './routes/_protected/direct-supply/egrn-report/index'
-import { Route as ProtectedDirectSupplyCreateGrnIndexRouteImport } from './routes/_protected/direct-supply/create-grn/index'
-import { Route as ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRouteImport } from './routes/_protected/direct-supply/egrn-report/grn/$grnId/index'
+import { Route as GrnTransferProtectedDeliveryDeliveryIdIndexRouteImport } from './routes/grn-transfer/_protected/delivery/$deliveryId/index'
 
-const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
-  id: '/_protected',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginIndexRoute = LoginIndexRouteImport.update({
-  id: '/login/',
-  path: '/login/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GrnTransferIndexRoute = GrnTransferIndexRouteImport.update({
   id: '/grn-transfer/',
   path: '/grn-transfer/',
@@ -47,6 +27,12 @@ const GrnTransferProtectedRouteRoute =
     id: '/grn-transfer/_protected',
     path: '/grn-transfer',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const GrnTransferProtectedViewGrnIndexRoute =
+  GrnTransferProtectedViewGrnIndexRouteImport.update({
+    id: '/view-grn/',
+    path: '/view-grn/',
+    getParentRoute: () => GrnTransferProtectedRouteRoute,
   } as any)
 const GrnTransferProtectedStoreReportIndexRoute =
   GrnTransferProtectedStoreReportIndexRouteImport.update({
@@ -66,154 +52,74 @@ const GrnTransferProtectedCreateGrnIndexRoute =
     path: '/create-grn/',
     getParentRoute: () => GrnTransferProtectedRouteRoute,
   } as any)
-const ProtectedStockMovementGrnHistoryIndexRoute =
-  ProtectedStockMovementGrnHistoryIndexRouteImport.update({
-    id: '/stock-movement/grn-history/',
-    path: '/stock-movement/grn-history/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
-const ProtectedDirectSupplyGrnHistoryIndexRoute =
-  ProtectedDirectSupplyGrnHistoryIndexRouteImport.update({
-    id: '/direct-supply/grn-history/',
-    path: '/direct-supply/grn-history/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
-const ProtectedDirectSupplyEgrnReportIndexRoute =
-  ProtectedDirectSupplyEgrnReportIndexRouteImport.update({
-    id: '/direct-supply/egrn-report/',
-    path: '/direct-supply/egrn-report/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
-const ProtectedDirectSupplyCreateGrnIndexRoute =
-  ProtectedDirectSupplyCreateGrnIndexRouteImport.update({
-    id: '/direct-supply/create-grn/',
-    path: '/direct-supply/create-grn/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
-const ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRoute =
-  ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRouteImport.update({
-    id: '/direct-supply/egrn-report/grn/$grnId/',
-    path: '/direct-supply/egrn-report/grn/$grnId/',
-    getParentRoute: () => ProtectedRouteRoute,
+const GrnTransferProtectedDeliveryDeliveryIdIndexRoute =
+  GrnTransferProtectedDeliveryDeliveryIdIndexRouteImport.update({
+    id: '/delivery/$deliveryId/',
+    path: '/delivery/$deliveryId/',
+    getParentRoute: () => GrnTransferProtectedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/grn-transfer': typeof GrnTransferIndexRoute
-  '/login': typeof LoginIndexRoute
-  '/direct-supply/create-grn': typeof ProtectedDirectSupplyCreateGrnIndexRoute
-  '/direct-supply/egrn-report': typeof ProtectedDirectSupplyEgrnReportIndexRoute
-  '/direct-supply/grn-history': typeof ProtectedDirectSupplyGrnHistoryIndexRoute
-  '/stock-movement/grn-history': typeof ProtectedStockMovementGrnHistoryIndexRoute
   '/grn-transfer/create-grn': typeof GrnTransferProtectedCreateGrnIndexRoute
   '/grn-transfer/grn-history': typeof GrnTransferProtectedGrnHistoryIndexRoute
   '/grn-transfer/store-report': typeof GrnTransferProtectedStoreReportIndexRoute
-  '/direct-supply/egrn-report/grn/$grnId': typeof ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRoute
+  '/grn-transfer/view-grn': typeof GrnTransferProtectedViewGrnIndexRoute
+  '/grn-transfer/delivery/$deliveryId': typeof GrnTransferProtectedDeliveryDeliveryIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/grn-transfer': typeof GrnTransferIndexRoute
-  '/login': typeof LoginIndexRoute
-  '/direct-supply/create-grn': typeof ProtectedDirectSupplyCreateGrnIndexRoute
-  '/direct-supply/egrn-report': typeof ProtectedDirectSupplyEgrnReportIndexRoute
-  '/direct-supply/grn-history': typeof ProtectedDirectSupplyGrnHistoryIndexRoute
-  '/stock-movement/grn-history': typeof ProtectedStockMovementGrnHistoryIndexRoute
   '/grn-transfer/create-grn': typeof GrnTransferProtectedCreateGrnIndexRoute
   '/grn-transfer/grn-history': typeof GrnTransferProtectedGrnHistoryIndexRoute
   '/grn-transfer/store-report': typeof GrnTransferProtectedStoreReportIndexRoute
-  '/direct-supply/egrn-report/grn/$grnId': typeof ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRoute
+  '/grn-transfer/view-grn': typeof GrnTransferProtectedViewGrnIndexRoute
+  '/grn-transfer/delivery/$deliveryId': typeof GrnTransferProtectedDeliveryDeliveryIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_protected': typeof ProtectedRouteRouteWithChildren
   '/grn-transfer/_protected': typeof GrnTransferProtectedRouteRouteWithChildren
   '/grn-transfer/': typeof GrnTransferIndexRoute
-  '/login/': typeof LoginIndexRoute
-  '/_protected/direct-supply/create-grn/': typeof ProtectedDirectSupplyCreateGrnIndexRoute
-  '/_protected/direct-supply/egrn-report/': typeof ProtectedDirectSupplyEgrnReportIndexRoute
-  '/_protected/direct-supply/grn-history/': typeof ProtectedDirectSupplyGrnHistoryIndexRoute
-  '/_protected/stock-movement/grn-history/': typeof ProtectedStockMovementGrnHistoryIndexRoute
   '/grn-transfer/_protected/create-grn/': typeof GrnTransferProtectedCreateGrnIndexRoute
   '/grn-transfer/_protected/grn-history/': typeof GrnTransferProtectedGrnHistoryIndexRoute
   '/grn-transfer/_protected/store-report/': typeof GrnTransferProtectedStoreReportIndexRoute
-  '/_protected/direct-supply/egrn-report/grn/$grnId/': typeof ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRoute
+  '/grn-transfer/_protected/view-grn/': typeof GrnTransferProtectedViewGrnIndexRoute
+  '/grn-transfer/_protected/delivery/$deliveryId/': typeof GrnTransferProtectedDeliveryDeliveryIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/grn-transfer'
-    | '/login'
-    | '/direct-supply/create-grn'
-    | '/direct-supply/egrn-report'
-    | '/direct-supply/grn-history'
-    | '/stock-movement/grn-history'
     | '/grn-transfer/create-grn'
     | '/grn-transfer/grn-history'
     | '/grn-transfer/store-report'
-    | '/direct-supply/egrn-report/grn/$grnId'
+    | '/grn-transfer/view-grn'
+    | '/grn-transfer/delivery/$deliveryId'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/grn-transfer'
-    | '/login'
-    | '/direct-supply/create-grn'
-    | '/direct-supply/egrn-report'
-    | '/direct-supply/grn-history'
-    | '/stock-movement/grn-history'
     | '/grn-transfer/create-grn'
     | '/grn-transfer/grn-history'
     | '/grn-transfer/store-report'
-    | '/direct-supply/egrn-report/grn/$grnId'
+    | '/grn-transfer/view-grn'
+    | '/grn-transfer/delivery/$deliveryId'
   id:
     | '__root__'
-    | '/'
-    | '/_protected'
     | '/grn-transfer/_protected'
     | '/grn-transfer/'
-    | '/login/'
-    | '/_protected/direct-supply/create-grn/'
-    | '/_protected/direct-supply/egrn-report/'
-    | '/_protected/direct-supply/grn-history/'
-    | '/_protected/stock-movement/grn-history/'
     | '/grn-transfer/_protected/create-grn/'
     | '/grn-transfer/_protected/grn-history/'
     | '/grn-transfer/_protected/store-report/'
-    | '/_protected/direct-supply/egrn-report/grn/$grnId/'
+    | '/grn-transfer/_protected/view-grn/'
+    | '/grn-transfer/_protected/delivery/$deliveryId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
   GrnTransferProtectedRouteRoute: typeof GrnTransferProtectedRouteRouteWithChildren
   GrnTransferIndexRoute: typeof GrnTransferIndexRoute
-  LoginIndexRoute: typeof LoginIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_protected': {
-      id: '/_protected'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof ProtectedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login/': {
-      id: '/login/'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/grn-transfer/': {
       id: '/grn-transfer/'
       path: '/grn-transfer'
@@ -227,6 +133,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/grn-transfer'
       preLoaderRoute: typeof GrnTransferProtectedRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/grn-transfer/_protected/view-grn/': {
+      id: '/grn-transfer/_protected/view-grn/'
+      path: '/view-grn'
+      fullPath: '/grn-transfer/view-grn'
+      preLoaderRoute: typeof GrnTransferProtectedViewGrnIndexRouteImport
+      parentRoute: typeof GrnTransferProtectedRouteRoute
     }
     '/grn-transfer/_protected/store-report/': {
       id: '/grn-transfer/_protected/store-report/'
@@ -249,73 +162,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GrnTransferProtectedCreateGrnIndexRouteImport
       parentRoute: typeof GrnTransferProtectedRouteRoute
     }
-    '/_protected/stock-movement/grn-history/': {
-      id: '/_protected/stock-movement/grn-history/'
-      path: '/stock-movement/grn-history'
-      fullPath: '/stock-movement/grn-history'
-      preLoaderRoute: typeof ProtectedStockMovementGrnHistoryIndexRouteImport
-      parentRoute: typeof ProtectedRouteRoute
-    }
-    '/_protected/direct-supply/grn-history/': {
-      id: '/_protected/direct-supply/grn-history/'
-      path: '/direct-supply/grn-history'
-      fullPath: '/direct-supply/grn-history'
-      preLoaderRoute: typeof ProtectedDirectSupplyGrnHistoryIndexRouteImport
-      parentRoute: typeof ProtectedRouteRoute
-    }
-    '/_protected/direct-supply/egrn-report/': {
-      id: '/_protected/direct-supply/egrn-report/'
-      path: '/direct-supply/egrn-report'
-      fullPath: '/direct-supply/egrn-report'
-      preLoaderRoute: typeof ProtectedDirectSupplyEgrnReportIndexRouteImport
-      parentRoute: typeof ProtectedRouteRoute
-    }
-    '/_protected/direct-supply/create-grn/': {
-      id: '/_protected/direct-supply/create-grn/'
-      path: '/direct-supply/create-grn'
-      fullPath: '/direct-supply/create-grn'
-      preLoaderRoute: typeof ProtectedDirectSupplyCreateGrnIndexRouteImport
-      parentRoute: typeof ProtectedRouteRoute
-    }
-    '/_protected/direct-supply/egrn-report/grn/$grnId/': {
-      id: '/_protected/direct-supply/egrn-report/grn/$grnId/'
-      path: '/direct-supply/egrn-report/grn/$grnId'
-      fullPath: '/direct-supply/egrn-report/grn/$grnId'
-      preLoaderRoute: typeof ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRouteImport
-      parentRoute: typeof ProtectedRouteRoute
+    '/grn-transfer/_protected/delivery/$deliveryId/': {
+      id: '/grn-transfer/_protected/delivery/$deliveryId/'
+      path: '/delivery/$deliveryId'
+      fullPath: '/grn-transfer/delivery/$deliveryId'
+      preLoaderRoute: typeof GrnTransferProtectedDeliveryDeliveryIdIndexRouteImport
+      parentRoute: typeof GrnTransferProtectedRouteRoute
     }
   }
 }
-
-interface ProtectedRouteRouteChildren {
-  ProtectedDirectSupplyCreateGrnIndexRoute: typeof ProtectedDirectSupplyCreateGrnIndexRoute
-  ProtectedDirectSupplyEgrnReportIndexRoute: typeof ProtectedDirectSupplyEgrnReportIndexRoute
-  ProtectedDirectSupplyGrnHistoryIndexRoute: typeof ProtectedDirectSupplyGrnHistoryIndexRoute
-  ProtectedStockMovementGrnHistoryIndexRoute: typeof ProtectedStockMovementGrnHistoryIndexRoute
-  ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRoute: typeof ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRoute
-}
-
-const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
-  ProtectedDirectSupplyCreateGrnIndexRoute:
-    ProtectedDirectSupplyCreateGrnIndexRoute,
-  ProtectedDirectSupplyEgrnReportIndexRoute:
-    ProtectedDirectSupplyEgrnReportIndexRoute,
-  ProtectedDirectSupplyGrnHistoryIndexRoute:
-    ProtectedDirectSupplyGrnHistoryIndexRoute,
-  ProtectedStockMovementGrnHistoryIndexRoute:
-    ProtectedStockMovementGrnHistoryIndexRoute,
-  ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRoute:
-    ProtectedDirectSupplyEgrnReportGrnGrnIdIndexRoute,
-}
-
-const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
-  ProtectedRouteRouteChildren,
-)
 
 interface GrnTransferProtectedRouteRouteChildren {
   GrnTransferProtectedCreateGrnIndexRoute: typeof GrnTransferProtectedCreateGrnIndexRoute
   GrnTransferProtectedGrnHistoryIndexRoute: typeof GrnTransferProtectedGrnHistoryIndexRoute
   GrnTransferProtectedStoreReportIndexRoute: typeof GrnTransferProtectedStoreReportIndexRoute
+  GrnTransferProtectedViewGrnIndexRoute: typeof GrnTransferProtectedViewGrnIndexRoute
+  GrnTransferProtectedDeliveryDeliveryIdIndexRoute: typeof GrnTransferProtectedDeliveryDeliveryIdIndexRoute
 }
 
 const GrnTransferProtectedRouteRouteChildren: GrnTransferProtectedRouteRouteChildren =
@@ -326,6 +188,10 @@ const GrnTransferProtectedRouteRouteChildren: GrnTransferProtectedRouteRouteChil
       GrnTransferProtectedGrnHistoryIndexRoute,
     GrnTransferProtectedStoreReportIndexRoute:
       GrnTransferProtectedStoreReportIndexRoute,
+    GrnTransferProtectedViewGrnIndexRoute:
+      GrnTransferProtectedViewGrnIndexRoute,
+    GrnTransferProtectedDeliveryDeliveryIdIndexRoute:
+      GrnTransferProtectedDeliveryDeliveryIdIndexRoute,
   }
 
 const GrnTransferProtectedRouteRouteWithChildren =
@@ -334,11 +200,8 @@ const GrnTransferProtectedRouteRouteWithChildren =
   )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
   GrnTransferProtectedRouteRoute: GrnTransferProtectedRouteRouteWithChildren,
   GrnTransferIndexRoute: GrnTransferIndexRoute,
-  LoginIndexRoute: LoginIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -124,6 +124,65 @@ interface IGrnDetail {
   }>
 }
 
+interface IDeliveryMetadata {
+  ID: string
+  UUID: string
+  ObjectID: string
+  TypeCode: string
+  TypeCodeText: string
+  DeliveryTypeCode: string
+  DeliveryTypeCodeText: string
+  ReleaseStatusCode: string
+  ReleaseStatusCodeText: string
+  ConsistencyStatusCode: string
+  ConsistencyStatusCodeText: string
+  CancellationStatusCode: string
+  CancellationStatusCodeText: string
+  DataOriginTypeCode: string
+  DataOriginTypeCodeText: string
+  DeliveryProcessingStatusCode: string
+  DeliveryProcessingStatusCodeText: string
+  CreationDateTime: string
+  PickupIndicator: boolean
+  IncotermsClassificationCode: string
+  IncotermsClassificationCodeText: string
+  IncotermsLocationName: string
+  Item?: Array<any>
+  BuyerParty?: { __deferred: { uri: string } }
+  SellerParty?: { __deferred: { uri: string } }
+  PickupPeriod?: { __deferred: { uri: string } }
+  ArrivalPeriod?: Record<string, any>
+  ShippingPeriod?: Record<string, any>
+  ShipFromLocation?: Record<string, any>
+  GrossVolumeMeasure?: { __deferred: { uri: string } }
+  GrossWeightMeasure?: { __deferred: { uri: string } }
+  FreightForwarderParty?: { __deferred: { uri: string } }
+  ProductRecipientParty?: Record<string, any>
+  __metadata?: {
+    uri: string
+    type: string
+  }
+}
+
+interface IDeliveryLineItemMetadata {
+  ID: string
+  UUID: string
+  ObjectID: string
+  ProductID: string
+  ParentObjectID: string
+  CancellationStatusCode: string
+  CancellationStatusCodeText: string
+  OutboundDelivery?: { __deferred: { uri: string } }
+  ItemSalesOrderReference?: { __deferred: { uri: string } }
+  ItemLogisticsRequestResponsibleParty?: { __deferred: { uri: string } }
+  IdentifiedStockID: string
+  ItemDeliveryQuantity?: Record<string, any>
+  __metadata?: {
+    uri: string
+    type: string
+  }
+}
+
 interface IDelivery {
   id: number
   object_id: string
@@ -135,13 +194,14 @@ interface IDelivery {
   delivery_status_code: string
   delivery_status: string
   delivery_type_code: string
-  sales_order_reference: string
+  sales_order_reference: string | null
   total_quantity_expected: number
   total_quantity_received: number
   is_fully_received: boolean
   destination_store_name: string
   line_items: Array<IDeliveryLineItem>
   created_date: string
+  metadata?: IDeliveryMetadata
 }
 
 interface IDeliveryLineItem {
@@ -154,4 +214,5 @@ interface IDeliveryLineItem {
   unit_of_measurement: string
   quantity_outstanding: number
   is_fully_received: boolean
+  metadata?: IDeliveryLineItemMetadata
 }

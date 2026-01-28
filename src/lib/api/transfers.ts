@@ -35,15 +35,15 @@ export const useDeliveryQuery = ({ deliveryId }: { deliveryId: string }) => {
   return useQuery({
     queryKey: ["transfers", "deliveries", deliveryId],
     queryFn: async () => {
-      const { data } = await axiosInstance.get(`/transfers/v1/deliveries/${deliveryId}`)
+      const { data } = await axiosInstance.get(`/transfers/v1/deliveries/${deliveryId}/`)
 
-      return data as IDelivery
+      return data.data as IDelivery
     },
     enabled: !!deliveryId,
   })
 }
 
-// GET /transfers/v1/search/?delivery_id=44415
+// GET /transfers/v1/search/
 export const useSearchDeliveriesQuery = ({
   source_location_id,
   source_location_name,
@@ -93,7 +93,7 @@ export const useSearchDeliveriesQuery = ({
         params,
       })
 
-      return data as IPaginatedResponse<IDelivery>
+      return data.data as IPaginatedResponse<IDelivery>
     },
   })
 }

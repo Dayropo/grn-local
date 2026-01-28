@@ -12,7 +12,7 @@ export const Route = createFileRoute("/grn-transfer/_protected")({
 
     if (!isAuthenticated) {
       throw redirect({
-        to: "/login",
+        to: "/grn-transfer",
         search: {
           redirect: window.location.pathname,
         },
@@ -27,7 +27,7 @@ function ProtectedLayout() {
     <SidebarProvider>
       <AppSidebar />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex w-full grow flex-col md:w-[calc(100%-var(--sidebar-width))]">
         <Header />
 
         <main className="flex-1 p-6">
