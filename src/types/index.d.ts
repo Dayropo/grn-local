@@ -169,6 +169,8 @@ interface IDeliveryLineItemMetadata {
   UUID: string
   ObjectID: string
   ProductID: string
+  InternatID: string
+  Description: string
   ParentObjectID: string
   CancellationStatusCode: string
   CancellationStatusCodeText: string

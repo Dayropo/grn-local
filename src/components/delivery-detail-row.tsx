@@ -12,9 +12,14 @@ import {
 interface DeliveryDetailRowProps {
   delivery: IDelivery
   isExpanded: boolean
+  isView?: boolean
 }
 
-export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({ delivery, isExpanded }) => {
+export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
+  delivery,
+  isExpanded,
+  isView,
+}) => {
   if (!isExpanded) return null
 
   const lineItems = delivery.line_items || []
@@ -26,13 +31,24 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({ delivery, 
       cell: ({ row }) => <div className="font-mono text-sm">{row.original.product_id || "-"}</div>,
     },
     {
-      accessorKey: "product_name",
+      accessorKey: "metadata.Description",
       header: "Product Name",
-      cell: ({ row }) => <div className="font-mono text-sm">{row.original.product_name || "-"}</div>,
+      cell: ({ row }) => (
+        <div className="font-mono text-sm">{row.original.metadata?.Description || "-"}</div>
+      ),
     },
     {
       accessorKey: "unit_of_measurement",
       header: "UOM",
+      cell: ({ row }) => (
+        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+          {row.original.unit_of_measurement || "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "unit_of_measurement",
+      header: "Unit Price",
       cell: ({ row }) => (
         <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
           {row.original.unit_of_measurement || "-"}
@@ -69,7 +85,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({ delivery, 
     },
     {
       id: "status",
-      header: "Status",
+      header: "Delivery Status",
       cell: ({ row }) => {
         const expected = parseFloat(row.original.quantity_expected || "0")
         const received = parseFloat(row.original.quantity_received || "0")
@@ -109,7 +125,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({ delivery, 
               Line Items ({lineItems.length} items)
             </h4>
 
-            <h4>Confirmation Status:</h4>
+            {isView && <h4>Confirmation Status:</h4>}
           </div>
           <div className="overflow-x-auto">
             <Table>

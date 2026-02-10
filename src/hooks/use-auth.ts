@@ -28,6 +28,12 @@ export function useAuth() {
     }
   }
 
+  const getUserRole = () => {
+    const user = accounts[0]
+    console.log
+    return user?.idTokenClaims?.roles || []
+  }
+
   return {
     isAuthenticated,
     user: accounts[0],

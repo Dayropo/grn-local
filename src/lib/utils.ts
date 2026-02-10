@@ -38,6 +38,20 @@ export function extractErrorInfo(error: unknown, defaultMessage = "An error occu
       result.statusCode = 401
       result.isAuthError = true
       result.message = axiosError.response?.data?.message || "Authentication required"
+    } else if (axiosError.response?.data?.data) {
+      result.statusCode = axiosError.response?.status
+      const errorData = axiosError.response.data.data
+      if (typeof errorData === "object" && !Array.isArray(errorData)) {
+        const errorMessages = Object.entries(errorData)
+          .flatMap(([, value]) => (Array.isArray(value) ? value : [value]))
+          .filter((msg): msg is string => typeof msg === "string")
+        result.message =
+          errorMessages.length > 0
+            ? errorMessages.join(", ")
+            : axiosError.response.data.message || defaultMessage
+      } else {
+        result.message = axiosError.response.data.message || defaultMessage
+      }
     } else if (axiosError.response?.data?.message) {
       result.statusCode = axiosError.response?.status
       result.message = axiosError.response.data.message

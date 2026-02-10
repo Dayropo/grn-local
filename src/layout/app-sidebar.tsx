@@ -40,6 +40,11 @@ export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sid
   const location = useLocation()
   const navItems: items = [
     {
+      title: "View GRN",
+      url: "/grn-transfer/view-grn",
+      icon: FileText,
+    },
+    {
       title: "Create GRN",
       url: "/grn-transfer/create-grn",
       icon: FileText,

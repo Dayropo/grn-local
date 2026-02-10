@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState, useCallback } from "react"
 import { toast } from "sonner"
-import { useSearchDeliveriesMutation } from "@/lib/api/transfers"
+import { useFetchDeliveryMutation } from "@/lib/api/transfers"
 import { CreateGrnSearchForm } from "@/components/create-grn-search-form"
 import { CreateGrnConfirmView } from "@/components/create-grn-confirm-view"
 import { CreateGrnPreviewView, type ReceiptFormData } from "@/components/create-grn-preview-view"
 import { CreateGrnErrorDialog } from "@/components/create-grn-error-dialog"
 import { CreateGrnLoadingDialog } from "@/components/create-grn-loading-dialog"
+import { extractErrorInfo } from "@/lib/utils"
 
 export const Route = createFileRoute("/grn-transfer/_protected/create-grn/")({
   component: CreateGrn,
@@ -22,7 +23,7 @@ function CreateGrn() {
   const [error, setError] = useState<string | null>(null)
   const [lastDeliveryId, setLastDeliveryId] = useState<string>("")
 
-  const { mutate: searchDeliveries, isPending } = useSearchDeliveriesMutation()
+  const { mutate: fetchDelivery, isPending: isFetchingDelivery } = useFetchDeliveryMutation()
 
   const handleSearch = useCallback(
     (values: { deliveryId: string }) => {
@@ -36,28 +37,24 @@ function CreateGrn() {
       setLastDeliveryId(id)
       setError(null)
 
-      searchDeliveries(
-        { deliveryId: parseInt(id) },
+      fetchDelivery(
+        { deliveryId: id },
         {
-          onSuccess: (data: any) => {
-            if (data && data.results) {
-              setResults(data.results)
-              setCurrentView("confirm")
-              toast.success("Delivery details loaded successfully")
-            } else {
-              setError("No delivery found")
-              toast.error("No delivery found")
-            }
+          onSuccess: (data: IDelivery) => {
+            setResults([data])
+            setCurrentView("confirm")
+            toast.success("Delivery details loaded successfully")
           },
-          onError: (err: any) => {
-            const errorMessage = err?.message || "Failed to fetch delivery details"
+          onError: error => {
+            const errorMessage =
+              extractErrorInfo(error).message || "Failed to fetch delivery details"
             setError(errorMessage)
             toast.error(errorMessage)
           },
         },
       )
     },
-    [searchDeliveries],
+    [fetchDelivery],
   )
 
   const handleRetry = useCallback(() => {
@@ -96,12 +93,12 @@ function CreateGrn() {
   return (
     <div className="h-full">
       {currentView === "search" && (
-        <CreateGrnSearchForm isLoading={isPending} onSubmit={handleSearch} />
+        <CreateGrnSearchForm isLoading={isFetchingDelivery} onSubmit={handleSearch} />
       )}
 
       {currentView === "confirm" && (
         <CreateGrnConfirmView
-          isLoading={isPending}
+          isLoading={isFetchingDelivery}
           results={results}
           onSubmit={handleSearch}
           onBackToSearch={handleBackToSearch}
@@ -117,7 +114,7 @@ function CreateGrn() {
         />
       )}
 
-      <CreateGrnLoadingDialog open={isPending} deliveryId={lastDeliveryId} />
+      <CreateGrnLoadingDialog open={isFetchingDelivery} deliveryId={lastDeliveryId} />
       <CreateGrnErrorDialog
         open={!!error}
         error={error}

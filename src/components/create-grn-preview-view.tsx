@@ -10,6 +10,15 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
@@ -27,6 +36,7 @@ import {
 } from "@/lib/api/transfers"
 import { toast } from "sonner"
 import { extractErrorInfo } from "@/lib/utils"
+import { useNavigate } from "@tanstack/react-router"
 
 export interface ReceiptFormData {
   lineItems: Record<string, number>
@@ -46,6 +56,9 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
 }) => {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [isConfirmed, setIsConfirmed] = React.useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = React.useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = React.useState(false)
+  const navigate = useNavigate()
 
   const { mutate: createDeliveryReceipt, isPending: isCreatingDeliveryReceipt } =
     useCreateDeliveryReceiptMutation()
@@ -57,15 +70,24 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
       cell: ({ row }) => <div className="font-mono text-sm">{row.original.product_id || "-"}</div>,
     },
     {
-      accessorKey: "product_name",
+      accessorKey: "metadata.Description",
       header: "Product Name",
       cell: ({ row }) => (
-        <div className="font-mono text-sm">{row.original.product_name || "-"}</div>
+        <div className="font-mono text-sm">{row.original.metadata?.Description || "-"}</div>
       ),
     },
     {
       accessorKey: "unit_of_measurement",
       header: "UOM",
+      cell: ({ row }) => (
+        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+          {row.original.unit_of_measurement || "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "unit_of_measurement",
+      header: "Unit Price",
       cell: ({ row }) => (
         <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
           {row.original.unit_of_measurement || "-"}
@@ -236,19 +258,25 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
 
   const handleSubmit = () => {
     if (!isConfirmed) return
+    setShowConfirmDialog(true)
+  }
 
+  const handleConfirmSubmit = () => {
     const payload: CreateDeliveryReceiptPayload = {
-      delivery: parseInt(delivery.delivery_id || "0"),
-      line_items: (delivery.line_items || []).map(item => ({
-        delivery_line_item: item.id,
-        quantity_received: formData.lineItems[item.product_id]?.toString() || "0",
-      })),
+      delivery: delivery.id,
+      line_items: (delivery.line_items || [])
+        .map(item => ({
+          delivery_line_item: item.id,
+          quantity_received: formData.lineItems[item.product_id]?.toString(),
+        }))
+        .filter(item => item.quantity_received && parseFloat(item.quantity_received) > 0),
       notes: formData.notes,
     }
 
     createDeliveryReceipt(payload, {
       onSuccess: () => {
-        toast.success("Delivery receipt created successfully")
+        setShowConfirmDialog(false)
+        setShowSuccessDialog(true)
       },
       onError: error => {
         const { message: errorMessage } = extractErrorInfo(
@@ -457,6 +485,50 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Transfer</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to submit this Goods Received Note? Please ensure all details
+              are correct before proceeding.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmSubmit}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Confirm
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>GRN Submitted Successfully</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your Goods Received Note has been submitted successfully. Kindly await confirmation
+              from the Supply Chain Department (SCD).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end">
+            <AlertDialogAction
+              onClick={() => {
+                setShowSuccessDialog(false)
+                navigate({ to: "/grn-transfer/grn-history" })
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Done
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

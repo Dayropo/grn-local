@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Search, Loader2, Package, AlertCircle } from "lucide-react"
-import React from "react"
+import React, { useMemo, useCallback, useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -14,6 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import type { ColumnDef } from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 
 const searchFormSchema = z.object({
   deliveryId: z.string().min(1, "Delivery ID is required"),
@@ -61,6 +63,109 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
       notes: "",
     },
   })
+
+  const [hasLineItemValues, setHasLineItemValues] = useState(false)
+
+  const lineItemColumns: ColumnDef<IDeliveryLineItem>[] = useMemo(
+    () => [
+      {
+        accessorKey: "product_id",
+        header: "Product ID",
+        cell: ({ row }) => (
+          <div className="font-mono text-sm">{row.original.product_id || "-"}</div>
+        ),
+      },
+      {
+        accessorKey: "metadata.Description",
+        header: "Product Name",
+        cell: ({ row }) => (
+          <div className="font-mono text-sm">{row.original.metadata?.Description || "-"}</div>
+        ),
+      },
+      {
+        accessorKey: "unit_of_measurement",
+        header: "UOM",
+        cell: ({ row }) => (
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+            {row.original.unit_of_measurement || "-"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "unit_of_measurement",
+        header: "Unit Price",
+        cell: ({ row }) => (
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+            {row.original.unit_of_measurement || "-"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "quantity_expected",
+        header: "Expected Qty",
+        cell: ({ row }) => (
+          <div className="font-mono text-sm">
+            {parseFloat(row.original.quantity_expected || "0").toFixed(2)}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "quantity_outstanding",
+        header: "Outstanding Qty",
+        cell: ({ row }) => (
+          <div className="font-mono text-sm font-semibold text-orange-600">
+            {(row.original.quantity_outstanding || 0).toFixed(2)}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "quantity_received",
+        header: "Received Qty",
+        cell: ({ row }) => (
+          <FormField
+            control={receiptForm.control}
+            name={`lineItems.${row.original.product_id}`}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    placeholder="0"
+                    className="h-9 w-24"
+                    disabled={row.original.is_fully_received}
+                    {...field}
+                    onChange={event => {
+                      const numericValue = event.target.value.replace(/\D/g, "")
+                      field.onChange(numericValue)
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ),
+      },
+    ],
+    [receiptForm.control],
+  )
+
+  const table = useReactTable({
+    data: delivery?.line_items || [],
+    columns: lineItemColumns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
+  useEffect(() => {
+    const subscription = receiptForm.watch(data => {
+      const lineItems = data.lineItems || {}
+      const lineItemCount = delivery?.line_items?.length || 0
+      const filledItemCount = Object.values(lineItems).filter(
+        value => value && value.toString().trim() !== "",
+      ).length
+      setHasLineItemValues(lineItemCount > 0 && filledItemCount === lineItemCount)
+    })
+    return () => subscription.unsubscribe()
+  }, [receiptForm, delivery?.line_items?.length])
 
   const handlePreview = (data: ReceiptFormValues) => {
     if (delivery) {
@@ -216,7 +321,7 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
         </div>
         <div className="text-right">
           <p className="text-sm text-blue-100">Status</p>
-          <p className="font-semibold">Completed</p>
+          <p className="font-semibold">{delivery.delivery_status}</p>
           <p className="mt-2 text-sm text-blue-100">Sales Order: {delivery.delivery_id}</p>
         </div>
       </div>
@@ -243,52 +348,29 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
             <div className="overflow-x-auto rounded-lg border border-gray-200">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="px-4 py-3 text-gray-900">Product ID</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900">UoM</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900">Expected Qty</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900">Outstanding Qty</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900">Qty Received</TableHead>
-                  </TableRow>
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <TableRow key={headerGroup.id} className="bg-gray-50 hover:bg-gray-50">
+                      {headerGroup.headers.map(header => (
+                        <TableHead
+                          key={header.id}
+                          className="px-6 py-3 text-xs font-medium uppercase"
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
                 </TableHeader>
                 <TableBody>
-                  {(delivery.line_items || []).map(item => (
-                    <TableRow key={item.id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <TableCell className="px-4 py-3 font-medium text-gray-900">
-                        {item.product_id}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-gray-700">
-                        {item.unit_of_measurement}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-gray-700">
-                        {item.quantity_expected}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-gray-700">
-                        {item.quantity_outstanding}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <FormField
-                          control={receiptForm.control}
-                          name={`lineItems.${item.product_id}`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  placeholder="0"
-                                  className="h-9 w-24"
-                                  disabled={item.is_fully_received}
-                                  {...field}
-                                  onChange={event => {
-                                    const numericValue = event.target.value.replace(/\D/g, "")
-                                    field.onChange(numericValue)
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </TableCell>
+                  {table.getRowModel().rows.map(row => (
+                    <TableRow key={row.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      {row.getVisibleCells().map(cell => (
+                        <TableCell key={cell.id} className="px-6 py-4">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -309,7 +391,7 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
                   <FormControl>
                     <textarea
                       placeholder="Add any general notes about this delivery..."
-                      className="w-full rounded-lg border border-gray-300 p-3 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                      className="w-full resize-none rounded-lg border border-gray-300 p-3 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                       rows={4}
                       {...field}
                     />
@@ -322,7 +404,9 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
 
           {/* Preview Button */}
           <div className="flex justify-end">
-            <Button type="submit">Preview GRN</Button>
+            <Button type="submit" disabled={!hasLineItemValues}>
+              Preview GRN
+            </Button>
           </div>
         </form>
       </Form>

@@ -7,6 +7,8 @@ import { queryClient } from "@/lib/query-client"
 import "./index.css"
 import { MsalProvider } from "@azure/msal-react"
 import { getMsalInstance } from "@/lib/msal"
+import { Toaster } from "sonner"
+import { CircleAlert, CircleCheck, CircleX } from "lucide-react"
 
 const router = createRouter({
   routeTree,
@@ -32,6 +34,16 @@ createRoot(document.getElementById("root")!).render(
     <MsalProvider instance={msalInstance}>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
+        <Toaster
+          richColors
+          icons={{
+            success: <CircleCheck fill="green" stroke="white" />,
+            info: <CircleAlert fill="blue" stroke="white" />,
+            warning: <CircleAlert fill="yellow" stroke="white" />,
+            error: <CircleX fill="red" stroke="white" />,
+          }}
+          className="group text-sm font-semibold capitalize"
+        />
       </QueryClientProvider>
     </MsalProvider>
   </StrictMode>,

@@ -370,8 +370,8 @@ function GrnHistory() {
                       key={headerGroup.id}
                       className="bg-primary hover:bg-primary text-white"
                     >
-                      {headerGroup.headers.map((header, idx) => (
-                        <TableHead key={header.id} className={`px-4`}>
+                      {headerGroup.headers.map(header => (
+                        <TableHead key={header.id} className="px-4">
                           {header.isPlaceholder
                             ? null
                             : flexRender(header.column.columnDef.header, header.getContext())}
@@ -386,12 +386,9 @@ function GrnHistory() {
                     const isExpanded = expandedRows.has(rowId)
                     return (
                       <React.Fragment key={row.id}>
-                        <TableRow
-                          data-state={row.getIsSelected() && "selected"}
-                          className={cn(isExpanded ? "bg-blue-50" : "")}
-                        >
-                          {row.getVisibleCells().map((cell, idx) => (
-                            <TableCell key={cell.id} className={`px-4`}>
+                        <TableRow className={cn(isExpanded ? "bg-blue-50" : "")}>
+                          {row.getVisibleCells().map(cell => (
+                            <TableCell key={cell.id} className="px-4">
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </TableCell>
                           ))}

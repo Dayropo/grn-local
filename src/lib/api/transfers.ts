@@ -43,6 +43,16 @@ export const useDeliveryQuery = ({ deliveryId }: { deliveryId: string }) => {
   })
 }
 
+export const useFetchDeliveryMutation = () => {
+  return useMutation({
+    mutationFn: async ({ deliveryId }: { deliveryId: string }) => {
+      const { data } = await axiosInstance.get(`/transfers/v1/deliveries/${deliveryId}/`)
+
+      return data.data as IDelivery
+    },
+  })
+}
+
 // GET /transfers/v1/search/
 export const useSearchDeliveriesQuery = ({
   source_location_id,
