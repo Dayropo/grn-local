@@ -36,9 +36,10 @@ export interface GrnHistoryFilterFormProps {
 }
 
 const deliveryStatusOptions = [
-  { value: "1", label: "Not Started" },
+  { value: "1", label: "Open" },
   { value: "2", label: "In Process" },
   { value: "3", label: "Completed" },
+  { value: "4", label: "Cancelled" },
 ]
 
 const deliveryTypeOptions = [

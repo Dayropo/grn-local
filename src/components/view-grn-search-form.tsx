@@ -83,7 +83,7 @@ export const ViewGrnSearchForm: React.FC<ViewGrnSearchFormProps> = ({
   return (
     <div className="space-y-4 rounded-xl bg-white p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">View & Confirm GRNs</h1>
+        <h1 className="text-2xl font-bold text-gray-900">View GRNs</h1>
         <p className="mt-2 text-sm text-gray-600">
           Search for delivery receipts created by stores to review and confirm
         </p>

@@ -1,6 +1,21 @@
-import { useDeliveryQuery } from "@/lib/api/transfers"
+import {
+  useDeliveryQuery,
+  useRefreshDeliveryMutation,
+  useUpdateDeliveryReceiptMutation,
+} from "@/lib/api/transfers"
 import { createFileRoute, useRouter } from "@tanstack/react-router"
-import { ArrowLeft, Download, Package, Printer, AlertTriangle } from "lucide-react"
+import {
+  ArrowLeft,
+  Download,
+  Package,
+  Printer,
+  AlertTriangle,
+  RefreshCw,
+  Edit,
+  Loader2,
+  X,
+  Save,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { extractErrorInfo } from "@/lib/utils"
 import {
@@ -19,6 +34,9 @@ import axiosInstance from "@/lib/axios"
 import { COMPANY_NAME, COMPANY_ADDRESS, COMPANY_PHONE, COMPANY_LOGO_SMALL } from "@/lib/constants"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
+import { useAuth } from "@/hooks/use-auth"
+import { useState } from "react"
+import { toast } from "sonner"
 
 export const Route = createFileRoute("/grn-transfer/_protected/delivery/$deliveryId/")({
   component: DeliveryDetail,
@@ -38,6 +56,77 @@ function DeliveryDetail() {
   const { deliveryId } = Route.useParams()
   const router = useRouter()
   const { data: delivery, status, error } = useDeliveryQuery({ deliveryId })
+  const { mutate: refreshDelivery } = useRefreshDeliveryMutation()
+  const { mutate: updateReceipt, isPending: isUpdating } = useUpdateDeliveryReceiptMutation()
+  const { getRoles } = useAuth()
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedQuantities, setEditedQuantities] = useState<Record<number, string>>({})
+  const [editNotes, setEditNotes] = useState("")
+
+  const userRoles = getRoles().map(r => r.toLowerCase())
+  const isRestaurantManager = userRoles.includes("restaurant_manager")
+
+  const latestReceiptStatus = delivery?.latest_receipt_status?.status
+  const isRejected = latestReceiptStatus === "rejected"
+  const showEditButton = isRestaurantManager && isRejected
+
+  const rejectedReceipt = delivery?.receipts?.find(r => r.approval_status === "rejected")
+
+  const handleStartEdit = () => {
+    if (!delivery) return
+    const quantities: Record<number, string> = {}
+    delivery.line_items.forEach(item => {
+      quantities[item.id] = parseFloat(item.quantity_received || "0").toString()
+    })
+    setEditedQuantities(quantities)
+    setEditNotes(
+      rejectedReceipt?.rejection_reason
+        ? `Correction for: ${rejectedReceipt.rejection_reason}`
+        : "",
+    )
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditedQuantities({})
+    setEditNotes("")
+  }
+
+  const handleSaveEdit = () => {
+    if (!rejectedReceipt) return
+    updateReceipt(
+      {
+        receiptId: rejectedReceipt.id,
+        line_items: Object.entries(editedQuantities).map(([lineItemId, qty]) => ({
+          line_item_id: Number(lineItemId),
+          quantity_received: qty === "" ? 0 : parseFloat(qty),
+        })),
+        notes: editNotes,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Receipt updated and resubmitted for approval")
+          setIsEditing(false)
+          setEditedQuantities({})
+          setEditNotes("")
+        },
+        onError: () => {
+          toast.error("Failed to update receipt")
+        },
+      },
+    )
+  }
+
+  const handleQuantityChange = (lineItemId: number, value: string) => {
+    const numericValue = value.replace(/[^0-9.]/g, "")
+    setEditedQuantities(prev => ({ ...prev, [lineItemId]: numericValue }))
+  }
+
+  const handleRefresh = () => {
+    refreshDelivery({ deliveryId })
+  }
 
   const lineItems = delivery?.line_items || []
 
@@ -60,6 +149,26 @@ function DeliveryDetail() {
       cell: ({ row }) => (
         <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
           {row.original.unit_of_measurement || "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "unit_price",
+      header: "Unit Price",
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">
+          {`${parseFloat(String(row.original.unit_price || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+            "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "total_value",
+      header: "Total Value",
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">
+          {`${parseFloat(String(row.original.total_value || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+            "-"}
         </span>
       ),
     },
@@ -263,14 +372,45 @@ function DeliveryDetail() {
 
         {/* Actions */}
         <div className="flex items-center space-x-2">
-          <Button size="sm" variant="outline" onClick={handlePrint}>
-            <Printer className="size-4" />
-            Print
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => handleDownload(delivery)}>
-            <Download className="size-4" />
-            Download
-          </Button>
+          {isEditing ? (
+            <>
+              <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={isUpdating}>
+                <X className="size-4" />
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveEdit}
+                disabled={isUpdating}
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
+                {isUpdating ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}
+                {isUpdating ? "Saving..." : "Save & Resubmit"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={handleRefresh}>Refresh</Button>
+              {showEditButton && (
+                <Button size="sm" variant="outline" onClick={handleStartEdit}>
+                  <Edit className="size-4" />
+                  Edit
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={handlePrint}>
+                <Printer className="size-4" />
+                Print
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleDownload(delivery)}>
+                <Download className="size-4" />
+                Download
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -348,12 +488,42 @@ function DeliveryDetail() {
           </div>
         </div>
 
+        {/* Rejection Banner */}
+        {isRejected && rejectedReceipt && !isEditing && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="flex gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+              <div>
+                <h3 className="font-semibold text-red-900">Receipt Rejected</h3>
+                <p className="mt-1 text-sm text-red-800">
+                  Receipt #{rejectedReceipt.receipt_number} was rejected
+                  {rejectedReceipt.rejection_reason && (
+                    <span>
+                      : <em>{rejectedReceipt.rejection_reason}</em>
+                    </span>
+                  )}
+                </p>
+                {rejectedReceipt.rejection_count > 1 && (
+                  <p className="mt-1 text-xs text-red-600">
+                    This receipt has been rejected {rejectedReceipt.rejection_count} times
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Line Items Table */}
         <div className="mt-6 rounded-lg border border-gray-200 bg-white">
           <div className="border-b border-gray-200 px-6 py-4">
             <h2 className="flex items-center text-lg font-semibold text-gray-900">
               <Package className="mr-2 size-5" />
               Line Items ({lineItems.length} item{lineItems.length === 1 ? "" : "s"})
+              {isEditing && (
+                <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                  Editing
+                </span>
+              )}
             </h2>
           </div>
 
@@ -378,10 +548,23 @@ function DeliveryDetail() {
               <TableBody>
                 {table.getRowModel().rows.length > 0 ? (
                   table.getRowModel().rows.map(row => (
-                    <TableRow key={row.id} className="hover:bg-gray-50">
+                    <TableRow
+                      key={row.id}
+                      className={isEditing ? "bg-amber-50/50" : "hover:bg-gray-50"}
+                    >
                       {row.getVisibleCells().map(cell => (
                         <TableCell key={cell.id} className="px-6 py-4">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {isEditing && cell.column.id === "quantity_received" ? (
+                            <input
+                              type="text"
+                              placeholder="0"
+                              value={editedQuantities[row.original.id] ?? ""}
+                              onChange={e => handleQuantityChange(row.original.id, e.target.value)}
+                              className="w-24 rounded-md border border-gray-300 px-2 py-1 font-mono text-sm font-semibold text-green-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            />
+                          ) : (
+                            flexRender(cell.column.columnDef.cell, cell.getContext())
+                          )}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -400,6 +583,23 @@ function DeliveryDetail() {
             </Table>
           </div>
         </div>
+
+        {/* Edit Notes */}
+        {isEditing && (
+          <div className="mt-4 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <label htmlFor="edit-notes" className="text-sm font-medium text-gray-900">
+              Notes (reason for update)
+            </label>
+            <textarea
+              id="edit-notes"
+              value={editNotes}
+              onChange={e => setEditNotes(e.target.value)}
+              placeholder="Describe the changes made to the received quantities..."
+              className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+              rows={3}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

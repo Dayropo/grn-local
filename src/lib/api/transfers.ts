@@ -161,6 +161,149 @@ export const useCreateDeliveryReceiptMutation = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transfers", "deliveries"], type: "all" })
+      qc.invalidateQueries({ queryKey: ["transfers", "approvals", "pending"], type: "all" })
+    },
+  })
+}
+
+// POST /transfers/v1/receipts/{{receiptId}}/approve/
+export const useApproveDeliveryReceiptMutation = () => {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: { receiptId: number }) => {
+      const { data } = await axiosInstance.post(
+        `/transfers/v1/receipts/${payload.receiptId}/approve/`,
+      )
+
+      return data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transfers", "deliveries"], type: "all" })
+      qc.invalidateQueries({ queryKey: ["transfers", "approvals", "pending"], type: "all" })
+    },
+  })
+}
+
+// POST /transfers/v1/receipts/{{receiptId}}/reject/
+export const useRejectDeliveryReceiptMutation = () => {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: { receiptId: number; rejectionReason: string }) => {
+      const { data } = await axiosInstance.post(
+        `/transfers/v1/receipts/${payload.receiptId}/reject/`,
+        { rejection_reason: payload.rejectionReason },
+      )
+
+      return data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transfers", "deliveries"], type: "all" })
+      qc.invalidateQueries({ queryKey: ["transfers", "approvals", "pending"], type: "all" })
+    },
+  })
+}
+
+export interface UpdateDeliveryReceiptPayload {
+  receiptId: number
+  line_items: Array<{
+    line_item_id: number
+    quantity_received: number
+  }>
+  notes: string
+}
+
+// PUT /transfers/v1/receipts/{{receiptId}}/update/
+export const useUpdateDeliveryReceiptMutation = () => {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ receiptId, ...payload }: UpdateDeliveryReceiptPayload) => {
+      const { data } = await axiosInstance.put(
+        `/transfers/v1/receipts/${receiptId}/update/`,
+        payload,
+      )
+
+      return data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transfers", "deliveries"], type: "all" })
+      qc.invalidateQueries({ queryKey: ["transfers", "approvals", "pending"], type: "all" })
+    },
+  })
+}
+
+// GET /transfers/v1/approvals/pending
+export const usePendingApprovalsQuery = () => {
+  return useQuery({
+    queryKey: ["transfers", "approvals", "pending"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get("/transfers/v1/approvals/pending")
+
+      return data.data as IPaginatedResponse<IPendingApproval>
+    },
+  })
+}
+
+// GET /transfers/v1/deliveries/{{deliveryId}}/?refresh=true
+export const useRefreshDeliveryMutation = () => {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: { deliveryId: string }) => {
+      const { data } = await axiosInstance.get(
+        `/transfers/v1/deliveries/${payload.deliveryId}/?refresh=true`,
+      )
+
+      return data.data as IDelivery
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transfers", "deliveries"], type: "all" })
+    },
+  })
+}
+
+// GET /transfers/v1/search/?download=true
+export const useExportDeliveryMutation = () => {
+  return useMutation({
+    mutationFn: async ({
+      source_location_id,
+      source_location_name,
+      destination_store,
+      delivery_date,
+      delivery_status_code,
+      delivery_type_code,
+      sales_order_reference,
+      delivery_id,
+    }: {
+      source_location_id?: number
+      source_location_name?: string
+      destination_store?: string
+      delivery_date?: string
+      delivery_status_code?: string
+      delivery_type_code?: string
+      sales_order_reference?: string
+      delivery_id?: number
+    }) => {
+      const params = new URLSearchParams()
+
+      if (source_location_id) params.append("source_location_id", source_location_id.toString())
+      if (source_location_name) params.append("source_location_name", source_location_name)
+      if (destination_store) params.append("destination_store", destination_store)
+      if (delivery_date) params.append("delivery_date", delivery_date)
+      if (delivery_status_code) params.append("delivery_status_code", delivery_status_code)
+      if (delivery_type_code) params.append("delivery_type_code", delivery_type_code)
+      if (sales_order_reference) params.append("sales_order_reference", sales_order_reference)
+      if (delivery_id) params.append("delivery_id", delivery_id.toString())
+
+      params.append("download", "true")
+
+      const { data } = await axiosInstance.get("/transfers/v1/search/", {
+        params,
+      })
+
+      return data.data as IPaginatedResponse<IDelivery>
     },
   })
 }

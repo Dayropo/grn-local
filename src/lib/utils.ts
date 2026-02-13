@@ -62,3 +62,30 @@ export function extractErrorInfo(error: unknown, defaultMessage = "An error occu
 
   return result
 }
+
+export const getStatusBadgeColor = (status: string) => {
+  if (!status) return "bg-gray-100 text-gray-800"
+  const normalized = status.trim().toLowerCase()
+  switch (normalized) {
+    case "open":
+      return "bg-blue-100 text-blue-800"
+    case "complete":
+    case "completed":
+      return "bg-green-100 text-green-800"
+    case "partial":
+      return "bg-yellow-100 text-yellow-800"
+    case "closed":
+      return "bg-gray-300 text-gray-700"
+    case "pending":
+      return "bg-red-100 text-red-800"
+    case "cancelled":
+      return "bg-gray-200 text-gray-500"
+    case "in transit":
+      return "bg-purple-100 text-purple-800"
+    case "processing":
+    case "in process":
+      return "bg-orange-100 text-orange-800"
+    default:
+      return "bg-gray-100 text-gray-800"
+  }
+}

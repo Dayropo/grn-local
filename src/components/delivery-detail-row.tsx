@@ -47,11 +47,22 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
       ),
     },
     {
-      accessorKey: "unit_of_measurement",
+      accessorKey: "unit_price",
       header: "Unit Price",
       cell: ({ row }) => (
-        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-          {row.original.unit_of_measurement || "-"}
+        <span className="font-mono text-sm">
+          {`${parseFloat(String(row.original.unit_price || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+            "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "total_value",
+      header: "Total Value",
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">
+          {`${parseFloat(String(row.original.total_value || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+            "-"}
         </span>
       ),
     },
@@ -60,7 +71,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
       header: "Expected Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm">
-          {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
+          {parseFloat(row.original.quantity_expected || "0").toFixed(2)}
         </div>
       ),
     },
@@ -69,7 +80,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
       header: "Received Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm font-semibold text-green-600">
-          {parseFloat(row.original.quantity_received || "0").toFixed(3)}
+          {parseFloat(row.original.quantity_received || "0").toFixed(2)}
         </div>
       ),
     },
@@ -80,12 +91,12 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
         const expected = parseFloat(row.original.quantity_expected || "0")
         const received = parseFloat(row.original.quantity_received || "0")
         const outstanding = expected - received
-        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(3)}</div>
+        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(2)}</div>
       },
     },
     {
       id: "status",
-      header: "Delivery Status",
+      header: "Status",
       cell: ({ row }) => {
         const expected = parseFloat(row.original.quantity_expected || "0")
         const received = parseFloat(row.original.quantity_received || "0")
@@ -125,7 +136,30 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
               Line Items ({lineItems.length} items)
             </h4>
 
-            {isView && <h4>Confirmation Status:</h4>}
+            {isView && (
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                Confirmation Status:
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    !delivery.receipts?.length
+                      ? "bg-gray-100 text-gray-800"
+                      : delivery.has_pending_approval
+                        ? "bg-yellow-100 text-yellow-800"
+                        : delivery.latest_receipt_status?.status === "rejected"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-green-100 text-green-800"
+                  }`}
+                >
+                  {!delivery.receipts?.length
+                    ? "No Receipt"
+                    : delivery.has_pending_approval
+                      ? "Awaiting Approval"
+                      : delivery.latest_receipt_status?.status === "rejected"
+                        ? "Rejected"
+                        : "Approved"}
+                </span>
+              </div>
+            )}
           </div>
           <div className="overflow-x-auto">
             <Table>

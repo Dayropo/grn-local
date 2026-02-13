@@ -1,6 +1,7 @@
 import axios from "axios"
 import { getMsalInstance } from "@/lib/msal"
 import { InteractionRequiredAuthError } from "@azure/msal-browser"
+import { loginScopes, extractRoles } from "@/lib/api/auth"
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -20,13 +21,15 @@ axiosInstance.interceptors.request.use(
     }
 
     const account = accounts[0]
-    const scope = import.meta.env.VITE_MSAL_SCOPE as string
 
     try {
       const response = await msalInstance.acquireTokenSilent({
-        scopes: [scope],
+        scopes: loginScopes,
         account,
       })
+
+      localStorage.setItem("accessToken", response.accessToken)
+      localStorage.setItem("roles", JSON.stringify(extractRoles(response.accessToken)))
 
       config.headers.Authorization = `Bearer ${response.accessToken}`
     } catch (error) {
@@ -34,9 +37,13 @@ axiosInstance.interceptors.request.use(
       if (error instanceof InteractionRequiredAuthError) {
         try {
           const response = await msalInstance.acquireTokenPopup({
-            scopes: [scope],
+            scopes: loginScopes,
             account,
           })
+
+          localStorage.setItem("accessToken", response.accessToken)
+          localStorage.setItem("roles", JSON.stringify(extractRoles(response.accessToken)))
+
           config.headers.Authorization = `Bearer ${response.accessToken}`
         } catch (popupError) {
           console.error("Failed to acquire token via popup:", popupError)

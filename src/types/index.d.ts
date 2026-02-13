@@ -3,6 +3,7 @@ interface IPaginatedResponse<T = any> {
   next: string | null
   previous: string | null
   results: T[]
+  download_url?: string
 }
 
 interface IGrn {
@@ -169,20 +170,52 @@ interface IDeliveryLineItemMetadata {
   UUID: string
   ObjectID: string
   ProductID: string
-  InternatID: string
+  InternalID: string
+  unit_price: number
   Description: string
+  currency_code: string
   ParentObjectID: string
+  valuation_date: string
   CancellationStatusCode: string
   CancellationStatusCodeText: string
   OutboundDelivery?: { __deferred: { uri: string } }
   ItemSalesOrderReference?: { __deferred: { uri: string } }
   ItemLogisticsRequestResponsibleParty?: { __deferred: { uri: string } }
   IdentifiedStockID: string
+  BaseMeasureUnitCode?: string
+  BaseMeasureUnitCodeText?: string
+  DescriptionLanguageCode?: string
+  DescriptionLanguageCodeText?: string
+  IdentifiedStockTypeCode?: string
+  IdentifiedStockTypeCodeText?: string
   ItemDeliveryQuantity?: Record<string, any>
   __metadata?: {
     uri: string
     type: string
   }
+}
+
+interface IDeliveryReceipt {
+  id: number
+  receipt_number: number
+  notes: string
+  created_date: string
+  created_by: string
+  approval_status: string
+  approval_status_display: string
+  submitted_at: string | null
+  approved_at: string | null
+  approved_by_name: string | null
+  rejection_reason: string | null
+  rejection_count: number
+  synced_to_sap: boolean
+  posted_to_icg: boolean
+}
+
+interface IDeliveryLatestReceiptStatus {
+  status: string
+  status_display: string
+  receipt_number: number
 }
 
 interface IDelivery {
@@ -202,6 +235,9 @@ interface IDelivery {
   is_fully_received: boolean
   destination_store_name: string
   line_items: Array<IDeliveryLineItem>
+  receipts: Array<IDeliveryReceipt>
+  latest_receipt_status: IDeliveryLatestReceiptStatus | null
+  has_pending_approval: boolean
   created_date: string
   metadata?: IDeliveryMetadata
 }
@@ -214,7 +250,45 @@ interface IDeliveryLineItem {
   quantity_expected: string
   quantity_received: string
   unit_of_measurement: string
+  unit_price: string
+  total_value: number
   quantity_outstanding: number
   is_fully_received: boolean
   metadata?: IDeliveryLineItemMetadata
+}
+
+interface IPendingApprovalLineItem {
+  id: number
+  inbound_delivery_line_item: IDeliveryLineItem
+  product_id: string
+  quantity_expected: string
+  quantity_received: string
+  unit_price: string
+  unit_of_measurement: string
+  value_received: number
+  metadata: Record<string, any>
+}
+
+interface IPendingApproval {
+  id: number
+  receipt_number: number
+  inbound_delivery: IDelivery
+  notes: string
+  source_location: string
+  source_location_id: string
+  destination_store: string
+  created_date: string
+  created_by: string
+  posted_to_icg: boolean
+  line_items: Array<IPendingApprovalLineItem>
+  metadata: Record<string, any>
+  approval_status: string
+  approval_status_display: string
+  submitted_at: string | null
+  approved_at: string | null
+  approved_by_name: string | null
+  rejection_reason: string | null
+  rejection_count: number
+  synced_to_sap: boolean
+  total_value_received: number
 }

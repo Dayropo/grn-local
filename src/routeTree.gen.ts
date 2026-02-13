@@ -11,10 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as GrnTransferIndexRouteImport } from './routes/grn-transfer/index'
 import { Route as GrnTransferProtectedRouteRouteImport } from './routes/grn-transfer/_protected/route'
+import { Route as GrnTransferProtectedViewGrnRouteRouteImport } from './routes/grn-transfer/_protected/view-grn/route'
 import { Route as GrnTransferProtectedViewGrnIndexRouteImport } from './routes/grn-transfer/_protected/view-grn/index'
 import { Route as GrnTransferProtectedStoreReportIndexRouteImport } from './routes/grn-transfer/_protected/store-report/index'
 import { Route as GrnTransferProtectedGrnHistoryIndexRouteImport } from './routes/grn-transfer/_protected/grn-history/index'
 import { Route as GrnTransferProtectedCreateGrnIndexRouteImport } from './routes/grn-transfer/_protected/create-grn/index'
+import { Route as GrnTransferProtectedViewGrnSearchIndexRouteImport } from './routes/grn-transfer/_protected/view-grn/search/index'
+import { Route as GrnTransferProtectedViewGrnPendingApprovalsIndexRouteImport } from './routes/grn-transfer/_protected/view-grn/pending-approvals/index'
 import { Route as GrnTransferProtectedDeliveryDeliveryIdIndexRouteImport } from './routes/grn-transfer/_protected/delivery/$deliveryId/index'
 
 const GrnTransferIndexRoute = GrnTransferIndexRouteImport.update({
@@ -28,11 +31,17 @@ const GrnTransferProtectedRouteRoute =
     path: '/grn-transfer',
     getParentRoute: () => rootRouteImport,
   } as any)
+const GrnTransferProtectedViewGrnRouteRoute =
+  GrnTransferProtectedViewGrnRouteRouteImport.update({
+    id: '/view-grn',
+    path: '/view-grn',
+    getParentRoute: () => GrnTransferProtectedRouteRoute,
+  } as any)
 const GrnTransferProtectedViewGrnIndexRoute =
   GrnTransferProtectedViewGrnIndexRouteImport.update({
-    id: '/view-grn/',
-    path: '/view-grn/',
-    getParentRoute: () => GrnTransferProtectedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => GrnTransferProtectedViewGrnRouteRoute,
   } as any)
 const GrnTransferProtectedStoreReportIndexRoute =
   GrnTransferProtectedStoreReportIndexRouteImport.update({
@@ -52,6 +61,18 @@ const GrnTransferProtectedCreateGrnIndexRoute =
     path: '/create-grn/',
     getParentRoute: () => GrnTransferProtectedRouteRoute,
   } as any)
+const GrnTransferProtectedViewGrnSearchIndexRoute =
+  GrnTransferProtectedViewGrnSearchIndexRouteImport.update({
+    id: '/search/',
+    path: '/search/',
+    getParentRoute: () => GrnTransferProtectedViewGrnRouteRoute,
+  } as any)
+const GrnTransferProtectedViewGrnPendingApprovalsIndexRoute =
+  GrnTransferProtectedViewGrnPendingApprovalsIndexRouteImport.update({
+    id: '/pending-approvals/',
+    path: '/pending-approvals/',
+    getParentRoute: () => GrnTransferProtectedViewGrnRouteRoute,
+  } as any)
 const GrnTransferProtectedDeliveryDeliveryIdIndexRoute =
   GrnTransferProtectedDeliveryDeliveryIdIndexRouteImport.update({
     id: '/delivery/$deliveryId/',
@@ -61,11 +82,14 @@ const GrnTransferProtectedDeliveryDeliveryIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/grn-transfer': typeof GrnTransferIndexRoute
+  '/grn-transfer/view-grn': typeof GrnTransferProtectedViewGrnRouteRouteWithChildren
   '/grn-transfer/create-grn': typeof GrnTransferProtectedCreateGrnIndexRoute
   '/grn-transfer/grn-history': typeof GrnTransferProtectedGrnHistoryIndexRoute
   '/grn-transfer/store-report': typeof GrnTransferProtectedStoreReportIndexRoute
-  '/grn-transfer/view-grn': typeof GrnTransferProtectedViewGrnIndexRoute
+  '/grn-transfer/view-grn/': typeof GrnTransferProtectedViewGrnIndexRoute
   '/grn-transfer/delivery/$deliveryId': typeof GrnTransferProtectedDeliveryDeliveryIdIndexRoute
+  '/grn-transfer/view-grn/pending-approvals': typeof GrnTransferProtectedViewGrnPendingApprovalsIndexRoute
+  '/grn-transfer/view-grn/search': typeof GrnTransferProtectedViewGrnSearchIndexRoute
 }
 export interface FileRoutesByTo {
   '/grn-transfer': typeof GrnTransferIndexRoute
@@ -74,26 +98,34 @@ export interface FileRoutesByTo {
   '/grn-transfer/store-report': typeof GrnTransferProtectedStoreReportIndexRoute
   '/grn-transfer/view-grn': typeof GrnTransferProtectedViewGrnIndexRoute
   '/grn-transfer/delivery/$deliveryId': typeof GrnTransferProtectedDeliveryDeliveryIdIndexRoute
+  '/grn-transfer/view-grn/pending-approvals': typeof GrnTransferProtectedViewGrnPendingApprovalsIndexRoute
+  '/grn-transfer/view-grn/search': typeof GrnTransferProtectedViewGrnSearchIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/grn-transfer/_protected': typeof GrnTransferProtectedRouteRouteWithChildren
   '/grn-transfer/': typeof GrnTransferIndexRoute
+  '/grn-transfer/_protected/view-grn': typeof GrnTransferProtectedViewGrnRouteRouteWithChildren
   '/grn-transfer/_protected/create-grn/': typeof GrnTransferProtectedCreateGrnIndexRoute
   '/grn-transfer/_protected/grn-history/': typeof GrnTransferProtectedGrnHistoryIndexRoute
   '/grn-transfer/_protected/store-report/': typeof GrnTransferProtectedStoreReportIndexRoute
   '/grn-transfer/_protected/view-grn/': typeof GrnTransferProtectedViewGrnIndexRoute
   '/grn-transfer/_protected/delivery/$deliveryId/': typeof GrnTransferProtectedDeliveryDeliveryIdIndexRoute
+  '/grn-transfer/_protected/view-grn/pending-approvals/': typeof GrnTransferProtectedViewGrnPendingApprovalsIndexRoute
+  '/grn-transfer/_protected/view-grn/search/': typeof GrnTransferProtectedViewGrnSearchIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/grn-transfer'
+    | '/grn-transfer/view-grn'
     | '/grn-transfer/create-grn'
     | '/grn-transfer/grn-history'
     | '/grn-transfer/store-report'
-    | '/grn-transfer/view-grn'
+    | '/grn-transfer/view-grn/'
     | '/grn-transfer/delivery/$deliveryId'
+    | '/grn-transfer/view-grn/pending-approvals'
+    | '/grn-transfer/view-grn/search'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/grn-transfer'
@@ -102,15 +134,20 @@ export interface FileRouteTypes {
     | '/grn-transfer/store-report'
     | '/grn-transfer/view-grn'
     | '/grn-transfer/delivery/$deliveryId'
+    | '/grn-transfer/view-grn/pending-approvals'
+    | '/grn-transfer/view-grn/search'
   id:
     | '__root__'
     | '/grn-transfer/_protected'
     | '/grn-transfer/'
+    | '/grn-transfer/_protected/view-grn'
     | '/grn-transfer/_protected/create-grn/'
     | '/grn-transfer/_protected/grn-history/'
     | '/grn-transfer/_protected/store-report/'
     | '/grn-transfer/_protected/view-grn/'
     | '/grn-transfer/_protected/delivery/$deliveryId/'
+    | '/grn-transfer/_protected/view-grn/pending-approvals/'
+    | '/grn-transfer/_protected/view-grn/search/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -134,12 +171,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GrnTransferProtectedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/grn-transfer/_protected/view-grn/': {
-      id: '/grn-transfer/_protected/view-grn/'
+    '/grn-transfer/_protected/view-grn': {
+      id: '/grn-transfer/_protected/view-grn'
       path: '/view-grn'
       fullPath: '/grn-transfer/view-grn'
-      preLoaderRoute: typeof GrnTransferProtectedViewGrnIndexRouteImport
+      preLoaderRoute: typeof GrnTransferProtectedViewGrnRouteRouteImport
       parentRoute: typeof GrnTransferProtectedRouteRoute
+    }
+    '/grn-transfer/_protected/view-grn/': {
+      id: '/grn-transfer/_protected/view-grn/'
+      path: '/'
+      fullPath: '/grn-transfer/view-grn/'
+      preLoaderRoute: typeof GrnTransferProtectedViewGrnIndexRouteImport
+      parentRoute: typeof GrnTransferProtectedViewGrnRouteRoute
     }
     '/grn-transfer/_protected/store-report/': {
       id: '/grn-transfer/_protected/store-report/'
@@ -162,6 +206,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GrnTransferProtectedCreateGrnIndexRouteImport
       parentRoute: typeof GrnTransferProtectedRouteRoute
     }
+    '/grn-transfer/_protected/view-grn/search/': {
+      id: '/grn-transfer/_protected/view-grn/search/'
+      path: '/search'
+      fullPath: '/grn-transfer/view-grn/search'
+      preLoaderRoute: typeof GrnTransferProtectedViewGrnSearchIndexRouteImport
+      parentRoute: typeof GrnTransferProtectedViewGrnRouteRoute
+    }
+    '/grn-transfer/_protected/view-grn/pending-approvals/': {
+      id: '/grn-transfer/_protected/view-grn/pending-approvals/'
+      path: '/pending-approvals'
+      fullPath: '/grn-transfer/view-grn/pending-approvals'
+      preLoaderRoute: typeof GrnTransferProtectedViewGrnPendingApprovalsIndexRouteImport
+      parentRoute: typeof GrnTransferProtectedViewGrnRouteRoute
+    }
     '/grn-transfer/_protected/delivery/$deliveryId/': {
       id: '/grn-transfer/_protected/delivery/$deliveryId/'
       path: '/delivery/$deliveryId'
@@ -172,24 +230,45 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface GrnTransferProtectedViewGrnRouteRouteChildren {
+  GrnTransferProtectedViewGrnIndexRoute: typeof GrnTransferProtectedViewGrnIndexRoute
+  GrnTransferProtectedViewGrnPendingApprovalsIndexRoute: typeof GrnTransferProtectedViewGrnPendingApprovalsIndexRoute
+  GrnTransferProtectedViewGrnSearchIndexRoute: typeof GrnTransferProtectedViewGrnSearchIndexRoute
+}
+
+const GrnTransferProtectedViewGrnRouteRouteChildren: GrnTransferProtectedViewGrnRouteRouteChildren =
+  {
+    GrnTransferProtectedViewGrnIndexRoute:
+      GrnTransferProtectedViewGrnIndexRoute,
+    GrnTransferProtectedViewGrnPendingApprovalsIndexRoute:
+      GrnTransferProtectedViewGrnPendingApprovalsIndexRoute,
+    GrnTransferProtectedViewGrnSearchIndexRoute:
+      GrnTransferProtectedViewGrnSearchIndexRoute,
+  }
+
+const GrnTransferProtectedViewGrnRouteRouteWithChildren =
+  GrnTransferProtectedViewGrnRouteRoute._addFileChildren(
+    GrnTransferProtectedViewGrnRouteRouteChildren,
+  )
+
 interface GrnTransferProtectedRouteRouteChildren {
+  GrnTransferProtectedViewGrnRouteRoute: typeof GrnTransferProtectedViewGrnRouteRouteWithChildren
   GrnTransferProtectedCreateGrnIndexRoute: typeof GrnTransferProtectedCreateGrnIndexRoute
   GrnTransferProtectedGrnHistoryIndexRoute: typeof GrnTransferProtectedGrnHistoryIndexRoute
   GrnTransferProtectedStoreReportIndexRoute: typeof GrnTransferProtectedStoreReportIndexRoute
-  GrnTransferProtectedViewGrnIndexRoute: typeof GrnTransferProtectedViewGrnIndexRoute
   GrnTransferProtectedDeliveryDeliveryIdIndexRoute: typeof GrnTransferProtectedDeliveryDeliveryIdIndexRoute
 }
 
 const GrnTransferProtectedRouteRouteChildren: GrnTransferProtectedRouteRouteChildren =
   {
+    GrnTransferProtectedViewGrnRouteRoute:
+      GrnTransferProtectedViewGrnRouteRouteWithChildren,
     GrnTransferProtectedCreateGrnIndexRoute:
       GrnTransferProtectedCreateGrnIndexRoute,
     GrnTransferProtectedGrnHistoryIndexRoute:
       GrnTransferProtectedGrnHistoryIndexRoute,
     GrnTransferProtectedStoreReportIndexRoute:
       GrnTransferProtectedStoreReportIndexRoute,
-    GrnTransferProtectedViewGrnIndexRoute:
-      GrnTransferProtectedViewGrnIndexRoute,
     GrnTransferProtectedDeliveryDeliveryIdIndexRoute:
       GrnTransferProtectedDeliveryDeliveryIdIndexRoute,
   }

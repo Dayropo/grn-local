@@ -1,8 +1,33 @@
 import { FoodCoLogo, LandingBackground } from "@/assets/images"
 import { Button } from "@/components/ui/button"
-import { useLoginMutation } from "@/lib/api/auth"
+import { useLoginMutation, extractRoles } from "@/lib/api/auth"
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { AlertCircle, ArrowLeftRight, Truck } from "lucide-react"
+
+const roleDefaultRoutes: Record<string, string> = {
+  restaurant_manager: "/grn-transfer/create-grn",
+  scd_team: "/grn-transfer/view-grn",
+  finance: "/grn-transfer/store-report",
+}
+
+const roleAllowedRoutes: Record<string, string[]> = {
+  restaurant_manager: ["/grn-transfer/create-grn", "/grn-transfer/grn-history"],
+  scd_team: ["/grn-transfer/view-grn"],
+  finance: ["/grn-transfer/store-report"],
+}
+
+function getDefaultRoute(roles: string[]): string {
+  const lower = roles.map(r => r.toLowerCase())
+  for (const role of lower) {
+    if (roleDefaultRoutes[role]) return roleDefaultRoutes[role]
+  }
+  return "/grn-transfer/create-grn"
+}
+
+function isRouteAllowed(route: string, roles: string[]): boolean {
+  const lower = roles.map(r => r.toLowerCase())
+  return lower.some(role => roleAllowedRoutes[role]?.some(r => route.startsWith(r)))
+}
 
 export const Route = createFileRoute("/grn-transfer/")({
   component: GrnTransferLanding,
@@ -21,9 +46,15 @@ function GrnTransferLanding() {
 
   const handleLogin = () => {
     login(undefined, {
-      onSuccess: () => {
-        if (redirect) navigate({ to: redirect })
-        navigate({ to: "/grn-transfer/create-grn" })
+      onSuccess: data => {
+        const roles = data?.roles ?? extractRoles(data?.accessToken ?? "")
+
+        if (redirect && isRouteAllowed(redirect, roles)) {
+          navigate({ to: redirect })
+          return
+        }
+
+        navigate({ to: getDefaultRoute(roles) })
       },
     })
   }

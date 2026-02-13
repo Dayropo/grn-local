@@ -15,7 +15,9 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import { Link, useLocation } from "@tanstack/react-router"
+import { useLogoutMutation } from "@/lib/api/auth"
+import { useAuth } from "@/hooks/use-auth"
+import { Link, useLocation, useNavigate } from "@tanstack/react-router"
 import {
   Archive,
   ChevronRight,
@@ -28,70 +30,68 @@ import {
 } from "lucide-react"
 import React from "react"
 
-type items = Array<{
+type NavItem = {
   title: string
   url: string
   icon: LucideIcon
   isActive?: boolean
+  allowedRoles?: string[]
   items?: Array<{ title: string; url: string }>
-}>
+}
+
+const allNavItems: NavItem[] = [
+  {
+    title: "View GRN",
+    url: "/grn-transfer/view-grn",
+    icon: FileText,
+    allowedRoles: ["SCD_Team"],
+  },
+  {
+    title: "Create GRN",
+    url: "/grn-transfer/create-grn",
+    icon: FileText,
+    allowedRoles: ["Restaurant_Manager"],
+  },
+  {
+    title: "GRN History",
+    url: "/grn-transfer/grn-history",
+    icon: History,
+    allowedRoles: ["Restaurant_Manager"],
+  },
+  {
+    title: "Store Report",
+    url: "/grn-transfer/store-report",
+    icon: FileBarChart,
+    allowedRoles: ["Finance"],
+  },
+]
 
 export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
-  const navItems: items = [
-    {
-      title: "View GRN",
-      url: "/grn-transfer/view-grn",
-      icon: FileText,
-    },
-    {
-      title: "Create GRN",
-      url: "/grn-transfer/create-grn",
-      icon: FileText,
-    },
-    { title: "GRN History", url: "/grn-transfer/grn-history", icon: History },
-    {
-      title: "Store Report",
-      url: "/grn-transfer/store-report",
-      icon: FileBarChart,
-    },
-    // {
-    //   title: "Direct Supply",
-    //   url: "#",
-    //   icon: PackageCheck,
-    //   isActive: true,
-    //   items: [
-    //     {
-    //       title: "Create GRN",
-    //       url: "/direct-supply/create-grn",
-    //     },
-    //     {
-    //       title: "Store History",
-    //       url: "/direct-supply/store-history",
-    //     },
-    //     {
-    //       title: "e-GRN Report",
-    //       url: "/direct-supply/egrn-report",
-    //     },
-    //   ],
-    // },
-    // {
-    //   title: "Stock Movement",
-    //   url: "#",
-    //   icon: Archive,
-    //   items: [
-    //     {
-    //       title: "Create GRN",
-    //       url: "/stock-movement/search-egtn",
-    //     },
-    //     { title: "GRN History", url: "/stock-movement/grn-history" },
-    //     {
-    //       title: "Store Report",
-    //       url: "/stock-movement/store-history",
-    //     },
-    //   ],
-    // },
-  ]
+  const navigate = useNavigate()
+  const { getRoles } = useAuth()
+
+  const userRoles = getRoles().map(r => r.toLowerCase())
+
+  const navItems = allNavItems.filter(item => {
+    if (!item.allowedRoles || item.allowedRoles.length === 0) return true
+    return item.allowedRoles.some(role => userRoles.includes(role.toLowerCase()))
+  })
+
+  const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation()
+
+  const handleLogout = () => {
+    logout(undefined, {
+      onSuccess: () => {
+        navigate({
+          to: "/grn-transfer",
+          search: {
+            redirect: window.location.pathname,
+          },
+        })
+      },
+    })
+  }
 
   return (
     <Sidebar {...props}>
@@ -163,7 +163,13 @@ export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sid
       </SidebarContent>
 
       <SidebarFooter>
-        <Button variant="outline" size="lg" className="text-destructive">
+        <Button
+          variant="outline"
+          size="lg"
+          className="text-destructive"
+          disabled={isLoggingOut}
+          onClick={handleLogout}
+        >
           <LogOut />
           <span>Logout</span>
         </Button>

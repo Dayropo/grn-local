@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Package, AlertCircle } from "lucide-react"
+import { ArrowLeft, Package, AlertCircle, Loader2 } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -11,13 +11,65 @@ import {
 import { formatDate } from "date-fns"
 import { COMPANY_ADDRESS, COMPANY_LOGO_SMALL, COMPANY_NAME, COMPANY_PHONE } from "@/lib/constants"
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import {
+  useApproveDeliveryReceiptMutation,
+  useRejectDeliveryReceiptMutation,
+} from "@/lib/api/transfers"
+import { useState } from "react"
+import { toast } from "sonner"
 
 interface ViewGrnDetailViewProps {
   grn: IDelivery
   onBackToList: () => void
+  receiptId?: number
+  approval?: IPendingApproval
 }
 
-export const ViewGrnDetailView: React.FC<ViewGrnDetailViewProps> = ({ grn, onBackToList }) => {
+export const ViewGrnDetailView: React.FC<ViewGrnDetailViewProps> = ({
+  grn,
+  onBackToList,
+  receiptId,
+  approval,
+}) => {
+  const [confirmed, setConfirmed] = useState(false)
+  const [showRejectInput, setShowRejectInput] = useState(false)
+  const [rejectionReason, setRejectionReason] = useState("")
+
+  const { mutate: approveReceipt, isPending: isApproving } = useApproveDeliveryReceiptMutation()
+  const { mutate: rejectReceipt, isPending: isRejecting } = useRejectDeliveryReceiptMutation()
+
+  const handleApprove = () => {
+    if (!receiptId) return
+    approveReceipt(
+      { receiptId },
+      {
+        onSuccess: () => {
+          toast.success("Receipt approved successfully")
+          onBackToList()
+        },
+        onError: () => {
+          toast.error("Failed to approve receipt")
+        },
+      },
+    )
+  }
+
+  const handleReject = () => {
+    if (!receiptId || !rejectionReason.trim()) return
+    rejectReceipt(
+      { receiptId, rejectionReason: rejectionReason.trim() },
+      {
+        onSuccess: () => {
+          toast.success("Receipt rejected")
+          onBackToList()
+        },
+        onError: () => {
+          toast.error("Failed to reject receipt")
+        },
+      },
+    )
+  }
+
   const calculateVariance = (expected: number, received: number) => {
     if (expected === 0) return 0
     return ((received - expected) / expected) * 100
@@ -48,11 +100,22 @@ export const ViewGrnDetailView: React.FC<ViewGrnDetailViewProps> = ({ grn, onBac
       ),
     },
     {
-      accessorKey: "unit_of_measurement",
+      accessorKey: "unit_price",
       header: "Unit Price",
       cell: ({ row }) => (
-        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-          {row.original.unit_of_measurement || "-"}
+        <span className="font-mono text-sm">
+          {`${parseFloat(String(row.original.unit_price || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+            "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "total_value",
+      header: "Total Value",
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">
+          {`${parseFloat(String(row.original.total_value || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+            "-"}
         </span>
       ),
     },
@@ -256,33 +319,84 @@ export const ViewGrnDetailView: React.FC<ViewGrnDetailViewProps> = ({ grn, onBac
 
         {/* Confirmation Section */}
         <div className="space-y-4 border-t border-gray-200 pt-6">
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="confirm-grn"
-              className="h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="confirm-grn"
-              className="cursor-pointer text-sm font-medium text-gray-900"
-            >
-              I have reviewed all details and confirm this GRN is correct
-            </label>
-          </div>
+          {receiptId && (
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="confirm-grn"
+                checked={confirmed}
+                onChange={e => setConfirmed(e.target.checked)}
+                className="h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label
+                htmlFor="confirm-grn"
+                className="cursor-pointer text-sm font-medium text-gray-900"
+              >
+                I have reviewed all details and confirm this GRN is correct
+              </label>
+            </div>
+          )}
+
+          {showRejectInput && (
+            <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 p-4">
+              <label htmlFor="rejection-reason" className="text-sm font-medium text-gray-900">
+                Reason for rejection
+              </label>
+              <textarea
+                id="rejection-reason"
+                value={rejectionReason}
+                onChange={e => setRejectionReason(e.target.value)}
+                placeholder="Please provide a reason for rejecting this receipt..."
+                className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+                rows={3}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowRejectInput(false)
+                    setRejectionReason("")
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={!rejectionReason.trim() || isRejecting}
+                  onClick={handleReject}
+                >
+                  {isRejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Confirm Rejection
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={onBackToList}>
               Back to List
             </Button>
-            <Button
-              disabled
-              className="bg-green-600 hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Confirm GRN
-            </Button>
-            <Button variant="destructive" disabled>
-              Reject GRN
-            </Button>
+            {receiptId && (
+              <>
+                <Button
+                  disabled={!confirmed || isApproving || showRejectInput}
+                  className="bg-green-600 hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={handleApprove}
+                >
+                  {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Approve GRN
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={isRejecting || isApproving}
+                  onClick={() => setShowRejectInput(true)}
+                >
+                  Reject GRN
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

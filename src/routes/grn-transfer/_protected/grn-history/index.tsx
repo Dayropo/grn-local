@@ -1,4 +1,4 @@
-import { useSearchDeliveriesQuery } from "@/lib/api/transfers"
+import { useExportDeliveryMutation, useSearchDeliveriesQuery } from "@/lib/api/transfers"
 import axiosInstance from "@/lib/axios"
 import { queryClient } from "@/lib/query-client"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
@@ -21,12 +21,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ArrowUpDown, ChevronRight, ChevronDown, Eye, X } from "lucide-react"
+import { ArrowUpDown, ChevronRight, ChevronDown, Eye, X, Download } from "lucide-react"
 import TableSkeleton from "@/components/table-skeleton"
 import { formatDate } from "date-fns"
 import { GrnHistoryFilterForm } from "@/components/grn-history-filter-form"
 import { DeliveryDetailRow } from "@/components/delivery-detail-row"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 export const Route = createFileRoute("/grn-transfer/_protected/grn-history/")({
   component: GrnHistory,
@@ -86,6 +87,7 @@ function GrnHistory() {
     sales_order_reference: debouncedSalesOrderReference || undefined,
     delivery_id: debouncedDeliveryId || undefined,
   })
+  const { mutate: exportDeliveries, isPending: isExporting } = useExportDeliveryMutation()
 
   const handleFilterSubmit = useCallback((values: any) => {
     setDeliveryId(values.deliveryId ? Number(values.deliveryId) : undefined)
@@ -146,6 +148,39 @@ function GrnHistory() {
     },
   ].filter(Boolean) as Array<{ label: string; setter: () => void }>
 
+  const handleExport = () => {
+    exportDeliveries(
+      {
+        source_location_id: debouncedSourceLocationId || undefined,
+        source_location_name: debouncedSourceLocationName || undefined,
+        destination_store: debouncedDestinationStore || undefined,
+        delivery_date: debouncedDeliveryDate || undefined,
+        delivery_status_code: debouncedDeliveryStatusCode || undefined,
+        delivery_type_code: debouncedDeliveryTypeCode || undefined,
+        sales_order_reference: debouncedSalesOrderReference || undefined,
+        delivery_id: debouncedDeliveryId || undefined,
+      },
+      {
+        onSuccess: data => {
+          const url = data.download_url
+          if (url) {
+            const a = document.createElement("a")
+            a.href = url
+            a.download = ""
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+          }
+
+          toast.success("Deliveries exported successfully")
+        },
+        onError: () => {
+          toast.error("Unable to export deliveries. Please try again later.")
+        },
+      },
+    )
+  }
+
   const totalItems: number = data?.count || 0
   const rows: IDelivery[] = data?.results || []
   const columns: ColumnDef<IDelivery>[] = [
@@ -157,7 +192,7 @@ function GrnHistory() {
         return (
           <button
             onClick={() => toggleRowExpansion(rowId)}
-            className="rounded p-1 transition-colors hover:bg-gray-200"
+            className="cursor-pointer rounded p-1 transition-colors hover:bg-gray-200"
             aria-label={isExpanded ? "Collapse row" : "Expand row"}
           >
             {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
@@ -219,7 +254,7 @@ function GrnHistory() {
           <ArrowUpDown />
         </Button>
       ),
-      cell: ({ row }) => <div className="">{row.original.total_quantity_expected}</div>,
+      cell: ({ row }) => <div className="">{row.original.total_quantity_expected.toFixed(2)}</div>,
     },
     {
       accessorKey: "total_quantity_received",
@@ -233,7 +268,7 @@ function GrnHistory() {
           <ArrowUpDown />
         </Button>
       ),
-      cell: ({ row }) => <div className="">{row.original.total_quantity_received}</div>,
+      cell: ({ row }) => <div className="">{row.original.total_quantity_received.toFixed(2)}</div>,
     },
     {
       accessorKey: "delivery_date",
@@ -304,7 +339,14 @@ function GrnHistory() {
   return (
     <div className="h-full space-y-6 rounded-xl bg-white p-6">
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">GRN History</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">GRN History</h1>
+
+          <Button variant="outline" onClick={handleExport} disabled={isExporting}>
+            <Download className="size-4" />
+            Export
+          </Button>
+        </div>
         <GrnHistoryFilterForm onSubmit={handleFilterSubmit} resetTrigger={clearTrigger} />
 
         {/* Active Filters Section */}
@@ -393,7 +435,7 @@ function GrnHistory() {
                             </TableCell>
                           ))}
                         </TableRow>
-                        <DeliveryDetailRow delivery={row.original} isExpanded={isExpanded} />
+                        <DeliveryDetailRow delivery={row.original} isExpanded={isExpanded} isView />
                       </React.Fragment>
                     )
                   })}

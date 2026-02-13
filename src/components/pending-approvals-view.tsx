@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Eye, ChevronRight, ChevronDown, ArrowUpDown, Download } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -11,27 +10,33 @@ import {
 import { formatDate } from "date-fns"
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import React, { useState, useCallback, useMemo } from "react"
+import {
+  Eye,
+  ChevronRight,
+  ChevronDown,
+  ArrowUpDown,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DeliveryDetailRow } from "./delivery-detail-row"
 
-interface ViewGrnListViewProps {
-  results: IDelivery[]
-  onSelectGrn: (grn: IDelivery) => void
-  onBackToSearch: () => void
-  onExport?: () => void
-  isExporting?: boolean
+interface PendingApprovalsViewProps {
+  approvals: IPendingApproval[]
+  isLoading?: boolean
+  onSelectApproval: (approval: IPendingApproval) => void
 }
 
-export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
-  results,
-  onSelectGrn,
-  onBackToSearch,
-  onExport,
-  isExporting,
+export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
+  approvals,
+  isLoading,
+  onSelectApproval,
 }) => {
-  const [expandedRows, setExpandedRows] = useState<Set<number | string>>(new Set())
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
 
-  const toggleRowExpansion = useCallback((rowId: number | string) => {
+  const toggleRowExpansion = useCallback((rowId: number) => {
     setExpandedRows(prev => {
       const newSet = new Set(prev)
       if (newSet.has(rowId)) {
@@ -43,16 +48,15 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
     })
   }, [])
 
-  const columns: ColumnDef<IDelivery>[] = useMemo(
+  const columns: ColumnDef<IPendingApproval>[] = useMemo(
     () => [
       {
         id: "expand",
         cell: ({ row }) => {
-          const rowId = row.original.delivery_id || row.index
-          const isExpanded = expandedRows.has(rowId)
+          const isExpanded = expandedRows.has(row.original.id)
           return (
             <button
-              onClick={() => toggleRowExpansion(rowId)}
+              onClick={() => toggleRowExpansion(row.original.id)}
               className="rounded p-1 transition-colors hover:bg-gray-200"
               aria-label={isExpanded ? "Collapse row" : "Expand row"}
             >
@@ -66,7 +70,23 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
         },
       },
       {
-        accessorKey: "delivery_id",
+        accessorKey: "receipt_number",
+        header: ({ column }) => (
+          <Button
+            variant="default"
+            className="w-full justify-start has-[>svg]:px-0"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Receipt #
+            <ArrowUpDown />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="font-mono font-medium">{row.original.receipt_number}</div>
+        ),
+      },
+      {
+        accessorKey: "inbound_delivery.delivery_id",
         header: ({ column }) => (
           <Button
             variant="default"
@@ -77,10 +97,10 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
             <ArrowUpDown />
           </Button>
         ),
-        cell: ({ row }) => <div className="">{row.original.delivery_id}</div>,
+        cell: ({ row }) => <div>{row.original.inbound_delivery?.delivery_id || "-"}</div>,
       },
       {
-        accessorKey: "source_location_name",
+        accessorKey: "source_location",
         header: ({ column }) => (
           <Button
             variant="default"
@@ -91,10 +111,10 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
             <ArrowUpDown />
           </Button>
         ),
-        cell: ({ row }) => <div className="">{row.original.source_location_name}</div>,
+        cell: ({ row }) => <div>{row.original.source_location}</div>,
       },
       {
-        accessorKey: "destination_store_name",
+        accessorKey: "destination_store",
         header: ({ column }) => (
           <Button
             variant="default"
@@ -105,10 +125,10 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
             <ArrowUpDown />
           </Button>
         ),
-        cell: ({ row }) => <div className="">{row.original.destination_store_name}</div>,
+        cell: ({ row }) => <div>{row.original.destination_store}</div>,
       },
       {
-        accessorKey: "total_quantity_expected",
+        accessorKey: "inbound_delivery.total_quantity_expected",
         header: ({ column }) => (
           <Button
             variant="default"
@@ -119,10 +139,14 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
             <ArrowUpDown />
           </Button>
         ),
-        cell: ({ row }) => <div className="">{row.original.total_quantity_expected}</div>,
+        cell: ({ row }) => (
+          <div className="">
+            {row.original.inbound_delivery?.total_quantity_expected.toFixed(2)}
+          </div>
+        ),
       },
       {
-        accessorKey: "total_quantity_received",
+        accessorKey: "inbound_delivery.total_quantity_received",
         header: ({ column }) => (
           <Button
             variant="default"
@@ -133,37 +157,55 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
             <ArrowUpDown />
           </Button>
         ),
-        cell: ({ row }) => <div className="">{row.original.total_quantity_received}</div>,
+        cell: ({ row }) => (
+          <div className="">
+            {row.original.inbound_delivery?.total_quantity_received.toFixed(2)}
+          </div>
+        ),
       },
       {
-        accessorKey: "delivery_date",
+        accessorKey: "created_date",
         header: ({ column }) => (
           <Button
             variant="default"
             className="w-full justify-start has-[>svg]:px-0"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Delivery Date
+            Date
             <ArrowUpDown />
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="">{formatDate(row.original.delivery_date, "MMM dd yyyy")}</div>
+          <div>
+            {row.original.created_date ? formatDate(row.original.created_date, "MMM dd yyyy") : "-"}
+          </div>
         ),
       },
       {
-        accessorKey: "delivery_status",
-        header: ({ column }) => (
-          <Button
-            variant="default"
-            className="w-full justify-start has-[>svg]:px-0"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Delivery Status
-            <ArrowUpDown />
+        accessorKey: "approval_status_display",
+        header: () => (
+          <Button variant="default" className="w-full justify-start has-[>svg]:px-0">
+            Status
           </Button>
         ),
-        cell: ({ row }) => <div className="">{row.original.delivery_status}</div>,
+        cell: ({ row }) => {
+          const status = row.original.approval_status
+          return (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
+                status === "receipt_submitted" && "bg-yellow-100 text-yellow-800",
+                status === "approved" && "bg-green-100 text-green-800",
+                status === "rejected" && "bg-red-100 text-red-800",
+              )}
+            >
+              {status === "receipt_submitted" && <Clock className="size-3" />}
+              {status === "approved" && <CheckCircle2 className="size-3" />}
+              {status === "rejected" && <XCircle className="size-3" />}
+              {row.original.approval_status_display}
+            </span>
+          )
+        },
       },
       {
         id: "actions",
@@ -176,41 +218,50 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
           <Button
             size="sm"
             className="text-primary rounded-xl bg-blue-50 text-sm hover:bg-blue-50/90"
-            onClick={() => onSelectGrn(row.original)}
+            onClick={() => onSelectApproval(row.original)}
           >
             <Eye className="size-4" />
-            View
+            Review
           </Button>
         ),
       },
     ],
-    [expandedRows, toggleRowExpansion, onSelectGrn],
+    [expandedRows, toggleRowExpansion, onSelectApproval],
   )
 
   const table = useReactTable({
-    data: results,
+    data: approvals,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center rounded-xl bg-white p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    )
+  }
+
+  if (approvals.length === 0) {
+    return (
+      <div className="rounded-xl bg-white p-12 text-center">
+        <CheckCircle2 className="mx-auto h-12 w-12 text-green-400" />
+        <h3 className="mt-4 text-lg font-semibold text-gray-900">No Pending Approvals</h3>
+        <p className="mt-2 text-sm text-gray-500">
+          All receipts have been reviewed. Check back later.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 rounded-xl bg-white p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">GRNs Found</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          {onExport && (
-            <Button variant="outline" onClick={onExport} disabled={isExporting}>
-              <Download className="size-4" />
-              Export
-            </Button>
-          )}
-          <Button variant="outline" onClick={onBackToSearch}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Search
-          </Button>
-        </div>
+      <div>
+        <h2 className="text-xl font-bold text-gray-900">Pending Approvals</h2>
+        <p className="mt-1 text-sm text-gray-600">
+          {approvals.length} receipt{approvals.length !== 1 ? "s" : ""} awaiting review
+        </p>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -231,8 +282,7 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.flatMap(row => {
-                const rowId = row.original.delivery_id || row.index
-                const isExpanded = expandedRows.has(rowId)
+                const isExpanded = expandedRows.has(row.original.id)
                 const rows = [
                   <TableRow key={row.id} className={cn(isExpanded ? "bg-blue-50" : "")}>
                     {row.getVisibleCells().map(cell => (
@@ -246,9 +296,8 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
                   rows.push(
                     <DeliveryDetailRow
                       key={`detail-${row.id}`}
-                      delivery={row.original}
+                      delivery={row.original.inbound_delivery}
                       isExpanded={isExpanded}
-                      isView
                     />,
                   )
                 }

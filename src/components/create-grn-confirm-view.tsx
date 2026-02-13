@@ -92,11 +92,22 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
         ),
       },
       {
-        accessorKey: "unit_of_measurement",
+        accessorKey: "unit_price",
         header: "Unit Price",
         cell: ({ row }) => (
-          <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-            {row.original.unit_of_measurement || "-"}
+          <span className="font-mono text-sm">
+            {`${parseFloat(String(row.original.unit_price || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+              "-"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "total_value",
+        header: "Total Value",
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">
+            {`${parseFloat(String(row.original.total_value || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+              "-"}
           </span>
         ),
       },
