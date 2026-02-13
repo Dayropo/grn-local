@@ -28,11 +28,11 @@ const searchFormSchema = z.object({
 
 type SearchFormValues = z.infer<typeof searchFormSchema>
 
-const grnStatusOptions = [
-  { value: "pending", label: "Pending" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "adjustment_requested", label: "Adjustment Requested" },
-  { value: "rejected", label: "Rejected" },
+const deliveryStatusOptions = [
+  { value: "1", label: "Open" },
+  { value: "2", label: "In Process" },
+  { value: "3", label: "Completed" },
+  { value: "4", label: "Cancelled" },
 ]
 
 interface ViewGrnSearchFormProps {
@@ -106,7 +106,7 @@ export const ViewGrnSearchForm: React.FC<ViewGrnSearchFormProps> = ({
                 <FormItem>
                   <FormControl>
                     <Input
-                      placeholder="Search by Delivery ID"
+                      placeholder="Search by GTN Number"
                       className="h-9"
                       disabled={isLoading}
                       {...field}
@@ -189,7 +189,7 @@ export const ViewGrnSearchForm: React.FC<ViewGrnSearchFormProps> = ({
               </PopoverContent>
             </Popover>
 
-            {/* GRN Status Filter */}
+            {/* Delivery Status Filter */}
             <FormField
               control={form.control}
               name="deliveryStatusCode"
@@ -202,12 +202,12 @@ export const ViewGrnSearchForm: React.FC<ViewGrnSearchFormProps> = ({
                   >
                     <FormControl>
                       <SelectTrigger className="h-9 w-full">
-                        <SelectValue placeholder="Select GRN status" />
+                        <SelectValue placeholder="Select Delivery Status" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      {grnStatusOptions.map(option => (
+                      <SelectItem value="all">All Delivery Statuses</SelectItem>
+                      {deliveryStatusOptions.map(option => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>

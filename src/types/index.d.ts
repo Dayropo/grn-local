@@ -195,9 +195,15 @@ interface IDeliveryLineItemMetadata {
   }
 }
 
+interface IDeliveryReceiptLineItem {
+  delivery_line_item: number
+  quantity_received: string
+}
+
 interface IDeliveryReceipt {
   id: number
   receipt_number: number
+  line_items: Array<IDeliveryReceiptLineItem>
   notes: string
   created_date: string
   created_by: string

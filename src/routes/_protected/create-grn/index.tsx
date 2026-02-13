@@ -9,7 +9,7 @@ import { CreateGrnErrorDialog } from "@/components/create-grn-error-dialog"
 import { CreateGrnLoadingDialog } from "@/components/create-grn-loading-dialog"
 import { extractErrorInfo } from "@/lib/utils"
 
-export const Route = createFileRoute("/grn-transfer/_protected/create-grn/")({
+export const Route = createFileRoute("/_protected/create-grn/")({
   component: CreateGrn,
 })
 

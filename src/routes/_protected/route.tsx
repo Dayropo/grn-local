@@ -4,7 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import AppSidebar from "@/layout/app-sidebar"
 import Header from "@/layout/header"
 
-export const Route = createFileRoute("/grn-transfer/_protected")({
+export const Route = createFileRoute("/_protected")({
   beforeLoad: async () => {
     const msalInstance = getMsalInstance()
     const accounts = msalInstance.getAllAccounts()
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/grn-transfer/_protected")({
 
     if (!isAuthenticated) {
       throw redirect({
-        to: "/grn-transfer",
+        to: "/",
         search: {
           redirect: window.location.pathname,
         },

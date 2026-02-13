@@ -3,7 +3,7 @@ import { usePendingApprovalsQuery } from "@/lib/api/transfers"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ClipboardCheck, Search } from "lucide-react"
 
-export const Route = createFileRoute("/grn-transfer/_protected/view-grn")({
+export const Route = createFileRoute("/_protected/view-grn")({
   component: ViewGrnLayout,
 })
 
@@ -18,9 +18,9 @@ function ViewGrnLayout() {
 
   const handleTabChange = (value: string) => {
     if (value === "pending-approvals") {
-      navigate({ to: "/grn-transfer/view-grn/pending-approvals" })
+      navigate({ to: "/view-grn/pending-approvals" })
     } else {
-      navigate({ to: "/grn-transfer/view-grn/search" })
+      navigate({ to: "/view-grn/search" })
     }
   }
 

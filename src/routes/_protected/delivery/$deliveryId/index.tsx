@@ -3,7 +3,7 @@ import {
   useRefreshDeliveryMutation,
   useUpdateDeliveryReceiptMutation,
 } from "@/lib/api/transfers"
-import { createFileRoute, useRouter } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import {
   ArrowLeft,
   Download,
@@ -37,8 +37,16 @@ import autoTable from "jspdf-autotable"
 import { useAuth } from "@/hooks/use-auth"
 import { useState } from "react"
 import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
-export const Route = createFileRoute("/grn-transfer/_protected/delivery/$deliveryId/")({
+export const Route = createFileRoute("/_protected/delivery/$deliveryId/")({
   component: DeliveryDetail,
   loader: async ({ params }) => {
     await queryClient.prefetchQuery({
@@ -63,28 +71,37 @@ function DeliveryDetail() {
   const [isEditing, setIsEditing] = useState(false)
   const [editedQuantities, setEditedQuantities] = useState<Record<number, string>>({})
   const [editNotes, setEditNotes] = useState("")
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const navigate = useNavigate()
 
   const userRoles = getRoles().map(r => r.toLowerCase())
   const isRestaurantManager = userRoles.includes("restaurant_manager")
 
-  const latestReceiptStatus = delivery?.latest_receipt_status?.status
-  const isRejected = latestReceiptStatus === "rejected"
+  const latestReceipt = delivery?.receipts?.length
+    ? delivery.receipts.reduce((latest, r) => (r.id > latest.id ? r : latest))
+    : null
+  const isRejected = latestReceipt?.approval_status === "rejected"
   const showEditButton = isRestaurantManager && isRejected
 
-  const rejectedReceipt = delivery?.receipts?.find(r => r.approval_status === "rejected")
+  const rejectedReceipt = isRejected ? latestReceipt : null
 
   const handleStartEdit = () => {
-    if (!delivery) return
+    if (!delivery || !rejectedReceipt) return
     const quantities: Record<number, string> = {}
+    // Initialize from the rejected receipt's line items
+    rejectedReceipt.line_items.forEach(receiptItem => {
+      quantities[receiptItem.delivery_line_item] = parseFloat(
+        receiptItem.quantity_received || "0",
+      ).toString()
+    })
+    // Fill in any delivery line items not in the receipt with "0"
     delivery.line_items.forEach(item => {
-      quantities[item.id] = parseFloat(item.quantity_received || "0").toString()
+      if (!(item.id in quantities)) {
+        quantities[item.id] = "0"
+      }
     })
     setEditedQuantities(quantities)
-    setEditNotes(
-      rejectedReceipt?.rejection_reason
-        ? `Correction for: ${rejectedReceipt.rejection_reason}`
-        : "",
-    )
+    setEditNotes("")
     setIsEditing(true)
   }
 
@@ -99,18 +116,21 @@ function DeliveryDetail() {
     updateReceipt(
       {
         receiptId: rejectedReceipt.id,
-        line_items: Object.entries(editedQuantities).map(([lineItemId, qty]) => ({
-          line_item_id: Number(lineItemId),
-          quantity_received: qty === "" ? 0 : parseFloat(qty),
+        line_items: rejectedReceipt.line_items.map(receiptItem => ({
+          line_item_id: receiptItem.delivery_line_item,
+          quantity_received:
+            editedQuantities[receiptItem.delivery_line_item] === ""
+              ? 0
+              : parseFloat(editedQuantities[receiptItem.delivery_line_item] || "0"),
         })),
         notes: editNotes,
       },
       {
         onSuccess: () => {
-          toast.success("Receipt updated and resubmitted for approval")
           setIsEditing(false)
           setEditedQuantities({})
           setEditNotes("")
+          setShowSuccessDialog(true)
         },
         onError: () => {
           toast.error("Failed to update receipt")
@@ -119,16 +139,41 @@ function DeliveryDetail() {
     )
   }
 
-  const handleQuantityChange = (lineItemId: number, value: string) => {
-    const numericValue = value.replace(/[^0-9.]/g, "")
-    setEditedQuantities(prev => ({ ...prev, [lineItemId]: numericValue }))
-  }
-
   const handleRefresh = () => {
     refreshDelivery({ deliveryId })
   }
 
   const lineItems = delivery?.line_items || []
+
+  // Compute previously received quantities from approved receipts (excluding the rejected one being edited)
+  const previouslyReceivedMap: Record<number, number> = {}
+  if (delivery && rejectedReceipt) {
+    delivery.receipts
+      .filter(r => r.id !== rejectedReceipt.id && r.approval_status === "approved")
+      .forEach(receipt => {
+        receipt.line_items.forEach(item => {
+          previouslyReceivedMap[item.delivery_line_item] =
+            (previouslyReceivedMap[item.delivery_line_item] || 0) +
+            parseFloat(item.quantity_received || "0")
+        })
+      })
+  }
+
+  const handleQuantityChange = (lineItemId: number, value: string) => {
+    const numericValue = value.replace(/[^0-9.]/g, "")
+    const parsed = parseFloat(numericValue)
+    if (!isNaN(parsed)) {
+      const lineItem = delivery?.line_items.find(item => item.id === lineItemId)
+      const expected = parseFloat(lineItem?.quantity_expected || "0")
+      const prevReceived = previouslyReceivedMap[lineItemId] || 0
+      const maxAllowed = Math.max(0, expected - prevReceived)
+      if (parsed > maxAllowed) {
+        setEditedQuantities(prev => ({ ...prev, [lineItemId]: maxAllowed.toString() }))
+        return
+      }
+    }
+    setEditedQuantities(prev => ({ ...prev, [lineItemId]: numericValue }))
+  }
 
   const getLineItemColumns = (): ColumnDef<IDeliveryLineItem>[] => [
     {
@@ -157,7 +202,7 @@ function DeliveryDetail() {
       header: "Unit Price",
       cell: ({ row }) => (
         <span className="font-mono text-sm">
-          {`${parseFloat(String(row.original.unit_price || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+          {`${parseFloat(String(row.original.unit_price || 0)).toLocaleString(`en-US`, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ``}` ||
             "-"}
         </span>
       ),
@@ -167,7 +212,7 @@ function DeliveryDetail() {
       header: "Total Value",
       cell: ({ row }) => (
         <span className="font-mono text-sm">
-          {`${parseFloat(String(row.original.total_value || 0)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ""}` ||
+          {`${parseFloat(String(row.original.total_value || 0)).toLocaleString(`en-US`, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${row.original.metadata?.currency_code || ``}` ||
             "-"}
         </span>
       ),
@@ -182,6 +227,22 @@ function DeliveryDetail() {
       ),
     },
     {
+      id: "outstanding",
+      header: "Outstanding Qty",
+      cell: ({ row }) => {
+        const expected = parseFloat(row.original.quantity_expected || "0")
+        if (isEditing) {
+          // During editing: outstanding = expected - previously approved quantities
+          const prevReceived = previouslyReceivedMap[row.original.id] || 0
+          const outstanding = expected - prevReceived
+          return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(2)}</div>
+        }
+        const received = parseFloat(row.original.quantity_received || "0")
+        const outstanding = expected - received
+        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(2)}</div>
+      },
+    },
+    {
       accessorKey: "quantity_received",
       header: "Received Qty",
       cell: ({ row }) => (
@@ -189,16 +250,6 @@ function DeliveryDetail() {
           {parseFloat(row.original.quantity_received || "0").toFixed(2)}
         </div>
       ),
-    },
-    {
-      id: "outstanding",
-      header: "Outstanding Qty",
-      cell: ({ row }) => {
-        const expected = parseFloat(row.original.quantity_expected || "0")
-        const received = parseFloat(row.original.quantity_received || "0")
-        const outstanding = expected - received
-        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(2)}</div>
-      },
     },
     {
       id: "status",
@@ -260,7 +311,7 @@ function DeliveryDetail() {
     doc.setFontSize(10)
     doc.text(COMPANY_ADDRESS, 105, yPosition, { align: "center" })
     yPosition += 5
-    doc.text(`Tel: ${COMPANY_PHONE}`, 105, yPosition, { align: "center" })
+    doc.text(`Tel: ${COMPANY_PHONE}`, 105, yPosition, { align: `center` })
     yPosition += 12
 
     doc.setFontSize(11)
@@ -286,6 +337,25 @@ function DeliveryDetail() {
 
     yPosition += 8
 
+    // Add rejection info if applicable
+    if (isRejected && rejectedReceipt) {
+      doc.setFontSize(11)
+      doc.setTextColor(180, 0, 0)
+      doc.text(`Receipt #${rejectedReceipt.receipt_number} - Rejected`, 14, yPosition)
+      yPosition += 6
+      doc.setFontSize(9)
+      if (rejectedReceipt.rejection_reason) {
+        doc.text(`Reason: ${rejectedReceipt.rejection_reason}`, 14, yPosition)
+        yPosition += 6
+      }
+      if (rejectedReceipt.rejection_count > 1) {
+        doc.text(`Rejected ${rejectedReceipt.rejection_count} times`, 14, yPosition)
+        yPosition += 6
+      }
+      doc.setTextColor(0, 0, 0)
+      yPosition += 4
+    }
+
     autoTable(doc, {
       startY: yPosition,
       head: [
@@ -294,24 +364,26 @@ function DeliveryDetail() {
           "Product Name",
           "UOM",
           "Expected Qty",
-          "Received Qty",
           "Outstanding Qty",
+          "Received Qty",
           "Status",
         ],
       ],
-      body: lineItems.map(item => [
-        item.product_id || "-",
-        item.product_name || "-",
-        item.unit_of_measurement || "-",
-        parseFloat(item.quantity_expected || "0").toFixed(2),
-        parseFloat(item.quantity_received || "0").toFixed(2),
-        item.quantity_outstanding.toFixed(2),
-        item.is_fully_received
-          ? "Complete"
-          : parseFloat(item.quantity_received || "0") > 0
-            ? "Partial"
-            : "Pending",
-      ]),
+      body: lineItems.map(item => {
+        const expected = parseFloat(item.quantity_expected || "0")
+        const received = parseFloat(item.quantity_received || "0")
+        const outstanding = expected - received
+
+        return [
+          item.product_id || "-",
+          item.product_name || "-",
+          item.unit_of_measurement || "-",
+          expected.toFixed(2),
+          outstanding.toFixed(2),
+          received.toFixed(2),
+          outstanding <= 0 ? "Complete" : received > 0 ? "Partial" : "Pending",
+        ]
+      }),
       styles: {
         fontSize: 9,
         cellPadding: 4,
@@ -394,7 +466,7 @@ function DeliveryDetail() {
             </>
           ) : (
             <>
-              <Button onClick={handleRefresh}>Refresh</Button>
+              {/* <Button onClick={handleRefresh}>Refresh</Button> */}
               {showEditButton && (
                 <Button size="sm" variant="outline" onClick={handleStartEdit}>
                   <Edit className="size-4" />
@@ -467,20 +539,22 @@ function DeliveryDetail() {
                 <div className="rounded-lg bg-blue-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Expected</p>
                   <p className="mt-1 text-lg font-bold text-blue-600">
-                    {delivery.total_quantity_expected || 0}
+                    {delivery.total_quantity_expected.toFixed(2) || "0.00"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-green-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Received</p>
                   <p className="mt-1 text-lg font-bold text-green-600">
-                    {delivery.total_quantity_received || 0}
+                    {delivery.total_quantity_received.toFixed(2) || "0.00"}
                   </p>
                 </div>
-                <div className="rounded-lg bg-orange-50 p-3 text-center">
+                <div className="rounded-lg bg-yellow-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Outstanding</p>
-                  <p className="mt-1 text-lg font-bold text-orange-600">
-                    {(delivery.total_quantity_expected || 0) -
-                      (delivery.total_quantity_received || 0)}
+                  <p className="mt-1 text-lg font-bold text-yellow-600">
+                    {(
+                      (delivery.total_quantity_expected || 0) -
+                      (delivery.total_quantity_received || 0)
+                    ).toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -519,9 +593,9 @@ function DeliveryDetail() {
             <h2 className="flex items-center text-lg font-semibold text-gray-900">
               <Package className="mr-2 size-5" />
               Line Items ({lineItems.length} item{lineItems.length === 1 ? "" : "s"})
-              {isEditing && (
+              {isEditing && rejectedReceipt && (
                 <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                  Editing
+                  Editing Receipt #{rejectedReceipt.receipt_number}
                 </span>
               )}
             </h2>
@@ -595,12 +669,35 @@ function DeliveryDetail() {
               value={editNotes}
               onChange={e => setEditNotes(e.target.value)}
               placeholder="Describe the changes made to the received quantities..."
-              className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full resize-none rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
               rows={3}
             />
           </div>
         )}
       </div>
+
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Receipt Updated Successfully</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your updated receipt has been resubmitted for approval. Kindly await confirmation from
+              the Supply Chain Department (SCD).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end">
+            <AlertDialogAction
+              onClick={() => {
+                setShowSuccessDialog(false)
+                navigate({ to: "/grn-history" })
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Done
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

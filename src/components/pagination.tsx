@@ -50,32 +50,7 @@ const Pagination: React.FC<PaginationProps> = ({
   }
 
   return (
-    <div
-      className={cn(
-        "mt-4 flex w-full flex-col items-center gap-4 sm:flex-row",
-        itemsPerPage ? "justify-between" : "justify-end",
-      )}
-    >
-      {/* Items per Page Dropdown */}
-      {itemsPerPage && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Items per page:</span>
-          <select
-            value={itemsPerPage}
-            onChange={e => onItemsPerPageChange(Number(e.target.value))}
-            className="rounded-md border border-gray-300 px-2 py-1 text-sm"
-            disabled={loading}
-            aria-label="Select items per page"
-          >
-            {itemsPerPageOptions.map(size => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
+    <div className={cn("mt-4 flex w-full flex-col items-center justify-end gap-4 sm:flex-row")}>
       {/* Pagination Controls */}
       <div className="flex items-center gap-3">
         {/* Previous Button */}

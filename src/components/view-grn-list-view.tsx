@@ -1,5 +1,13 @@
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Eye, ChevronRight, ChevronDown, ArrowUpDown, Download } from "lucide-react"
+import {
+  ArrowLeft,
+  Eye,
+  ChevronRight,
+  ChevronDown,
+  ArrowUpDown,
+  Download,
+  Package,
+} from "lucide-react"
 import {
   Table,
   TableBody,
@@ -13,6 +21,7 @@ import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tan
 import React, { useState, useCallback, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { DeliveryDetailRow } from "./delivery-detail-row"
+import Pagination from "@/components/pagination"
 
 interface ViewGrnListViewProps {
   results: IDelivery[]
@@ -20,6 +29,12 @@ interface ViewGrnListViewProps {
   onBackToSearch: () => void
   onExport?: () => void
   isExporting?: boolean
+  isLoading?: boolean
+  page?: number
+  totalPages?: number
+  itemsPerPage?: number
+  onPageChange?: (page: number) => void
+  onItemsPerPageChange?: (perPage: number) => void
 }
 
 export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
@@ -28,6 +43,12 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
   onBackToSearch,
   onExport,
   isExporting,
+  isLoading,
+  page = 1,
+  totalPages = 1,
+  itemsPerPage = 10,
+  onPageChange,
+  onItemsPerPageChange,
 }) => {
   const [expandedRows, setExpandedRows] = useState<Set<number | string>>(new Set())
 
@@ -213,51 +234,79 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map(headerGroup => (
-                <TableRow key={headerGroup.id} className="bg-primary hover:bg-primary text-white">
-                  {headerGroup.headers.map(header => (
-                    <TableHead key={header.id} className="px-4">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.flatMap(row => {
-                const rowId = row.original.delivery_id || row.index
-                const isExpanded = expandedRows.has(rowId)
-                const rows = [
-                  <TableRow key={row.id} className={cn(isExpanded ? "bg-blue-50" : "")}>
-                    {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id} className="px-4">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>,
-                ]
-                if (isExpanded) {
-                  rows.push(
-                    <DeliveryDetailRow
-                      key={`detail-${row.id}`}
-                      delivery={row.original}
-                      isExpanded={isExpanded}
-                      isView
-                    />,
-                  )
-                }
-                return rows
-              })}
-            </TableBody>
-          </Table>
+      {results.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50 py-16">
+          <div className="rounded-full bg-blue-100 p-4">
+            <Package className="h-8 w-8 text-blue-600" />
+          </div>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900">No GRNs Found</h3>
+          <p className="mt-2 text-sm text-gray-600">
+            No delivery receipts match your search criteria. Try a different search.
+          </p>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <TableRow
+                      key={headerGroup.id}
+                      className="bg-primary hover:bg-primary text-white"
+                    >
+                      {headerGroup.headers.map(header => (
+                        <TableHead key={header.id} className="px-4">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.flatMap(row => {
+                    const rowId = row.original.delivery_id || row.index
+                    const isExpanded = expandedRows.has(rowId)
+                    const rows = [
+                      <TableRow key={row.id} className={cn(isExpanded ? "bg-blue-50" : "")}>
+                        {row.getVisibleCells().map(cell => (
+                          <TableCell key={cell.id} className="px-4">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>,
+                    ]
+                    if (isExpanded) {
+                      rows.push(
+                        <DeliveryDetailRow
+                          key={`detail-${row.id}`}
+                          delivery={row.original}
+                          isExpanded={isExpanded}
+                          isView
+                        />,
+                      )
+                    }
+                    return rows
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {onPageChange && onItemsPerPageChange && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              itemsPerPage={itemsPerPage}
+              onPageChange={onPageChange}
+              onItemsPerPageChange={onItemsPerPageChange}
+              loading={isLoading}
+            />
+          )}
+        </>
+      )}
     </div>
   )
 }

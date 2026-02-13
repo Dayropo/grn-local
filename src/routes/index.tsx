@@ -5,15 +5,15 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { AlertCircle, ArrowLeftRight, Truck } from "lucide-react"
 
 const roleDefaultRoutes: Record<string, string> = {
-  restaurant_manager: "/grn-transfer/create-grn",
-  scd_team: "/grn-transfer/view-grn",
-  finance: "/grn-transfer/store-report",
+  restaurant_manager: "/create-grn",
+  scd_team: "/view-grn",
+  finance: "/store-report",
 }
 
 const roleAllowedRoutes: Record<string, string[]> = {
-  restaurant_manager: ["/grn-transfer/create-grn", "/grn-transfer/grn-history"],
-  scd_team: ["/grn-transfer/view-grn"],
-  finance: ["/grn-transfer/store-report"],
+  restaurant_manager: ["/create-grn", "/grn-history"],
+  scd_team: ["/view-grn"],
+  finance: ["/store-report"],
 }
 
 function getDefaultRoute(roles: string[]): string {
@@ -21,7 +21,7 @@ function getDefaultRoute(roles: string[]): string {
   for (const role of lower) {
     if (roleDefaultRoutes[role]) return roleDefaultRoutes[role]
   }
-  return "/grn-transfer/create-grn"
+  return "/create-grn"
 }
 
 function isRouteAllowed(route: string, roles: string[]): boolean {
@@ -29,7 +29,7 @@ function isRouteAllowed(route: string, roles: string[]): boolean {
   return lower.some(role => roleAllowedRoutes[role]?.some(r => route.startsWith(r)))
 }
 
-export const Route = createFileRoute("/grn-transfer/")({
+export const Route = createFileRoute("/")({
   component: GrnTransferLanding,
   validateSearch: (search: Record<string, unknown>) => {
     return {
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/grn-transfer/")({
 
 function GrnTransferLanding() {
   const navigate = useNavigate()
-  const { redirect } = useSearch({ from: "/grn-transfer/" })
+  const { redirect } = useSearch({ from: "/" })
 
   const { mutate: login, isPending, error } = useLoginMutation()
 

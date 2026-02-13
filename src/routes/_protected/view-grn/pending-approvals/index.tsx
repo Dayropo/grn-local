@@ -4,7 +4,7 @@ import { PendingApprovalsView } from "@/components/pending-approvals-view"
 import { useCallback, useState } from "react"
 import { ViewGrnDetailView } from "@/components/view-grn-detail-view"
 
-export const Route = createFileRoute("/grn-transfer/_protected/view-grn/pending-approvals/")({
+export const Route = createFileRoute("/_protected/view-grn/pending-approvals/")({
   component: PendingApprovalsPage,
 })
 

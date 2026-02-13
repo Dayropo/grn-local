@@ -1,4 +1,4 @@
-import { useExportDeliveryMutation, useSearchDeliveriesQuery } from "@/lib/api/transfers"
+import { useDeliveriesQuery, useExportDeliveryMutation } from "@/lib/api/transfers"
 import axiosInstance from "@/lib/axios"
 import { queryClient } from "@/lib/query-client"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
@@ -21,21 +21,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ArrowUpDown, ChevronRight, ChevronDown, Eye, X, Download } from "lucide-react"
+import { ArrowUpDown, ChevronRight, ChevronDown, Eye, X, Download, Package } from "lucide-react"
 import TableSkeleton from "@/components/table-skeleton"
 import { formatDate } from "date-fns"
 import { GrnHistoryFilterForm } from "@/components/grn-history-filter-form"
 import { DeliveryDetailRow } from "@/components/delivery-detail-row"
-import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import Pagination from "@/components/pagination"
+import { cn } from "@/lib/utils"
 
-export const Route = createFileRoute("/grn-transfer/_protected/grn-history/")({
-  component: GrnHistory,
+export const Route = createFileRoute("/_protected/store-report/")({
+  component: StoreReport,
   loader: async () => {
     await queryClient.prefetchQuery({
-      queryKey: ["transfers", "deliveries", "search"],
+      queryKey: [
+        "transfers",
+        "deliveries",
+        1,
+        10,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ],
       queryFn: async () => {
-        const { data } = await axiosInstance.get("/transfers/v1/search/")
+        const { data } = await axiosInstance.get("/transfers/v1/deliveries/?page=1&size=10")
 
         return data.data as IPaginatedResponse<IDelivery>
       },
@@ -43,7 +57,7 @@ export const Route = createFileRoute("/grn-transfer/_protected/grn-history/")({
   },
 })
 
-function GrnHistory() {
+function StoreReport() {
   const [sourceLocationId, setSourceLocationId] = useState<number | undefined>()
   const [debouncedSourceLocationId] = useDebounce(sourceLocationId, 1000)
   const [sourceLocationName, setSourceLocationName] = useState<string>("")
@@ -62,6 +76,8 @@ function GrnHistory() {
   const [debouncedDeliveryId] = useDebounce(deliveryId, 1000)
   const [sorting, setSorting] = useState<SortingState>([])
   const [expandedRows, setExpandedRows] = useState<Set<number | string>>(new Set())
+  const [page, setPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
   const [clearTrigger, setClearTrigger] = useState(0)
   const navigate = useNavigate()
 
@@ -77,7 +93,9 @@ function GrnHistory() {
     })
   }, [])
 
-  const { data, status, error } = useSearchDeliveriesQuery({
+  const { data, status, error } = useDeliveriesQuery({
+    page,
+    size: itemsPerPage,
     source_location_id: debouncedSourceLocationId || undefined,
     source_location_name: debouncedSourceLocationName || undefined,
     destination_store: debouncedDestinationStore || undefined,
@@ -133,7 +151,7 @@ function GrnHistory() {
       label: `Destination: ${destinationStore}`,
       setter: () => setDestinationStore(""),
     },
-    deliveryDate && { label: `Date: ${deliveryDate}`, setter: () => setDeliveryDate("") },
+    deliveryDate && { label: `Date: ${deliveryDate}`, setter: () => setDeliveryDate(``) },
     deliveryStatusCode && {
       label: `Status: ${deliveryStatusCode}`,
       setter: () => setDeliveryStatusCode(""),
@@ -192,7 +210,7 @@ function GrnHistory() {
         return (
           <button
             onClick={() => toggleRowExpansion(rowId)}
-            className="cursor-pointer rounded p-1 transition-colors hover:bg-gray-200"
+            className="rounded p-1 transition-colors hover:bg-gray-200"
             aria-label={isExpanded ? "Collapse row" : "Expand row"}
           >
             {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
@@ -313,7 +331,7 @@ function GrnHistory() {
           <Button
             className="text-primary rounded-xl bg-blue-50 text-sm hover:bg-blue-50/90"
             onClick={() => {
-              navigate({ to: `/grn-transfer/delivery/${deliveryId}` })
+              navigate({ to: `/delivery/${deliveryId}` })
             }}
             size="sm"
           >
@@ -340,7 +358,7 @@ function GrnHistory() {
     <div className="h-full space-y-6 rounded-xl bg-white p-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">GRN History</h1>
+          <h1 className="text-2xl font-bold">Store Report</h1>
 
           <Button variant="outline" onClick={handleExport} disabled={isExporting}>
             <Download className="size-4" />
@@ -403,53 +421,78 @@ function GrnHistory() {
         </section>
       ) : (
         <section className="flex flex-col gap-6">
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map(headerGroup => (
-                    <TableRow
-                      key={headerGroup.id}
-                      className="bg-primary hover:bg-primary text-white"
-                    >
-                      {headerGroup.headers.map(header => (
-                        <TableHead key={header.id} className="px-4">
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.map(row => {
-                    const rowId = row.original.delivery_id || row.index
-                    const isExpanded = expandedRows.has(rowId)
-                    return (
-                      <React.Fragment key={row.id}>
-                        <TableRow className={cn(isExpanded ? "bg-blue-50" : "")}>
-                          {row.getVisibleCells().map(cell => (
-                            <TableCell key={cell.id} className="px-4">
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
+          {rows.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50 py-16">
+              <div className="rounded-full bg-blue-100 p-4">
+                <Package className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-gray-900">No Deliveries Found</h3>
+              <p className="mt-2 text-sm text-gray-600">
+                No delivery records match your current filters. Try adjusting your search criteria.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      {table.getHeaderGroups().map(headerGroup => (
+                        <TableRow
+                          key={headerGroup.id}
+                          className="bg-primary hover:bg-primary text-white"
+                        >
+                          {headerGroup.headers.map(header => (
+                            <TableHead key={header.id} className="px-4">
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(header.column.columnDef.header, header.getContext())}
+                            </TableHead>
                           ))}
                         </TableRow>
-                        <DeliveryDetailRow delivery={row.original} isExpanded={isExpanded} isView />
-                      </React.Fragment>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+                      ))}
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows.map(row => {
+                        const rowId = row.original.delivery_id || row.index
+                        const isExpanded = expandedRows.has(rowId)
+                        return (
+                          <React.Fragment key={row.id}>
+                            <TableRow
+                              data-state={row.getIsSelected() && "selected"}
+                              className={isExpanded ? "bg-blue-50" : ""}
+                            >
+                              {row.getVisibleCells().map((cell, idx) => (
+                                <TableCell key={cell.id} className={`px-4`}>
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                            <DeliveryDetailRow
+                              delivery={row.original}
+                              isExpanded={isExpanded}
+                              isView
+                            />
+                          </React.Fragment>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
 
-          {/* <Pagination
-            currentPage={page}
-            totalPages={Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-            onPageChange={setPage}
-            onItemsPerPageChange={setItemsPerPage}
-          /> */}
+              <Pagination
+                currentPage={page}
+                totalPages={Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setPage}
+                onItemsPerPageChange={val => {
+                  setItemsPerPage(val)
+                  setPage(1)
+                }}
+              />
+            </>
+          )}
         </section>
       )}
     </div>

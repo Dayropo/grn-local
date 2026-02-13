@@ -111,29 +111,6 @@ export const GrnHistoryFilterForm: React.FC<GrnHistoryFilterFormProps> = ({
             )}
           />
 
-          {/* Source Location ID Filter */}
-          {/* <FormField
-            control={form.control}
-            name="sourceLocationId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Source Location ID</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter Source Location ID"
-                    className="h-9"
-                    {...field}
-                    onChange={event => {
-                      const numericValue = event.target.value.replace(/\D/g, "")
-                      field.onChange(numericValue)
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
-
           {/* Source Location Name Filter */}
           <FormField
             control={form.control}
@@ -218,7 +195,7 @@ export const GrnHistoryFilterForm: React.FC<GrnHistoryFilterFormProps> = ({
           />
 
           {/* Delivery Type Filter */}
-          <FormField
+          {/* <FormField
             control={form.control}
             name="deliveryTypeCode"
             render={({ field }) => (
@@ -241,26 +218,6 @@ export const GrnHistoryFilterForm: React.FC<GrnHistoryFilterFormProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Sales Order Reference Filter */}
-          {/* <FormField
-            control={form.control}
-            name="salesOrderReference"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Sales Order Reference</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="Enter Sales Order Reference"
-                    className="h-9"
-                    {...field}
-                  />
-                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

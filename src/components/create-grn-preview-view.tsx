@@ -128,8 +128,9 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
       header: "Received Qty",
       cell: ({ row }) => {
         const receivedQty =
-          formData.lineItems[row.original.product_id] ??
-          parseFloat(row.original.quantity_received || "0")
+          (formData.lineItems[row.original.product_id] ??
+            parseFloat(row.original.quantity_received || "0")) ||
+          0
         return (
           <div className="font-mono text-sm font-semibold text-green-600">
             {receivedQty.toFixed(2)}
@@ -141,24 +142,21 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
       accessorKey: "is_fully_received",
       header: "Status",
       cell: ({ row }) => {
-        const expected = parseFloat(row.original.quantity_expected || "0")
-        const received =
-          formData.lineItems[row.original.product_id] ??
-          parseFloat(row.original.quantity_received || "0")
-        const outstanding = expected - received
-        const isFullyReceived = outstanding <= 0
+        const newQty = formData.lineItems[row.original.product_id] || 0
+        const outstanding = (row.original.quantity_outstanding || 0) - newQty
+        const isFullyReceived = row.original.is_fully_received || outstanding <= 0
 
         return (
           <span
             className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
               isFullyReceived
                 ? "bg-green-100 text-green-800"
-                : received > 0
+                : newQty > 0
                   ? "bg-yellow-100 text-yellow-800"
                   : "bg-red-100 text-red-800"
             }`}
           >
-            {isFullyReceived ? "Complete" : received > 0 ? "Partial" : "Pending"}
+            {isFullyReceived ? "Complete" : newQty > 0 ? "Partial" : "Pending"}
           </span>
         )
       },
@@ -374,23 +372,30 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
                 <div className="rounded-lg bg-blue-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Expected</p>
                   <p className="mt-1 text-lg font-bold text-blue-600">
-                    {delivery.total_quantity_expected || 0}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-yellow-50 p-3 text-center">
-                  <p className="text-xs font-medium text-gray-600">Outstanding</p>
-                  <p className="mt-1 text-lg font-bold text-yellow-600">
-                    {(
-                      (delivery.total_quantity_expected || 0) -
-                      Object.values(formData.lineItems).reduce((sum, qty) => sum + qty, 0)
-                    ).toFixed(2)}
+                    {delivery.total_quantity_expected.toFixed(2) || "0.00"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-green-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Received</p>
                   <p className="mt-1 text-lg font-bold text-green-600">
-                    {Object.values(formData.lineItems)
-                      .reduce((sum, qty) => sum + qty, 0)
+                    {(delivery.line_items || [])
+                      .reduce((sum, item) => {
+                        const prevReceived = parseFloat(item.quantity_received || "0") || 0
+                        const newQty = formData.lineItems[item.product_id] || 0
+                        return sum + prevReceived + newQty
+                      }, 0)
+                      .toFixed(2)}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-yellow-50 p-3 text-center">
+                  <p className="text-xs font-medium text-gray-600">Outstanding</p>
+                  <p className="mt-1 text-lg font-bold text-yellow-600">
+                    {(delivery.line_items || [])
+                      .reduce((sum, item) => {
+                        const newQty = formData.lineItems[item.product_id] || 0
+                        const remaining = (item.quantity_outstanding || 0) - newQty
+                        return sum + Math.max(remaining, 0)
+                      }, 0)
                       .toFixed(2)}
                   </p>
                 </div>
@@ -531,7 +536,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
             <AlertDialogAction
               onClick={() => {
                 setShowSuccessDialog(false)
-                navigate({ to: "/grn-transfer/grn-history" })
+                navigate({ to: "/grn-history" })
               }}
               className="bg-green-600 hover:bg-green-700"
             >

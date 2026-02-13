@@ -347,7 +347,7 @@ export const ViewGrnDetailView: React.FC<ViewGrnDetailViewProps> = ({
                 value={rejectionReason}
                 onChange={e => setRejectionReason(e.target.value)}
                 placeholder="Please provide a reason for rejecting this receipt..."
-                className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full resize-none rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                 rows={3}
               />
               <div className="flex justify-end gap-2">

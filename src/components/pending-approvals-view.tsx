@@ -8,8 +8,15 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { formatDate } from "date-fns"
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
 import React, { useState, useCallback, useMemo } from "react"
+import Pagination from "@/components/pagination"
 import {
   Eye,
   ChevronRight,
@@ -18,6 +25,7 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  RefreshCw,
   Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -35,6 +43,8 @@ export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
   onSelectApproval,
 }) => {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
+  const [page, setPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const toggleRowExpansion = useCallback((rowId: number) => {
     setExpandedRows(prev => {
@@ -195,11 +205,13 @@ export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
               className={cn(
                 "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
                 status === "receipt_submitted" && "bg-yellow-100 text-yellow-800",
+                status === "resubmitted" && "bg-blue-100 text-blue-800",
                 status === "approved" && "bg-green-100 text-green-800",
                 status === "rejected" && "bg-red-100 text-red-800",
               )}
             >
               {status === "receipt_submitted" && <Clock className="size-3" />}
+              {status === "resubmitted" && <RefreshCw className="size-3" />}
               {status === "approved" && <CheckCircle2 className="size-3" />}
               {status === "rejected" && <XCircle className="size-3" />}
               {row.original.approval_status_display}
@@ -233,6 +245,20 @@ export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
     data: approvals,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    state: {
+      pagination: {
+        pageIndex: page - 1,
+        pageSize: itemsPerPage,
+      },
+    },
+    onPaginationChange: updater => {
+      if (typeof updater === "function") {
+        const newState = updater({ pageIndex: page - 1, pageSize: itemsPerPage })
+        setPage(newState.pageIndex + 1)
+        setItemsPerPage(newState.pageSize)
+      }
+    },
   })
 
   if (isLoading) {
@@ -307,6 +333,19 @@ export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
           </Table>
         </div>
       </div>
+
+      {approvals.length > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={table.getPageCount()}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setPage}
+          onItemsPerPageChange={val => {
+            setItemsPerPage(val)
+            setPage(1)
+          }}
+        />
+      )}
     </div>
   )
 }

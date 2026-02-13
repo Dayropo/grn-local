@@ -22,25 +22,25 @@ const allNavLinks: Array<{ title: string; url: string; icon: LucideIcon; allowed
   [
     {
       title: "View GRN",
-      url: "/grn-transfer/view-grn",
+      url: "/view-grn",
       icon: FileText,
       allowedRoles: ["SCD_Team"],
     },
     {
       title: "Create GRN",
-      url: "/grn-transfer/create-grn",
+      url: "/create-grn",
       icon: FileText,
       allowedRoles: ["Restaurant_Manager"],
     },
     {
       title: "GRN History",
-      url: "/grn-transfer/grn-history",
+      url: "/grn-history",
       icon: History,
       allowedRoles: ["Restaurant_Manager"],
     },
     {
       title: "Store Report",
-      url: "/grn-transfer/store-report",
+      url: "/store-report",
       icon: FileBarChart,
       allowedRoles: ["Finance"],
     },
@@ -67,7 +67,7 @@ export default function Header() {
       onSuccess: () => {
         setOpen(false)
         navigate({
-          to: "/grn-transfer",
+          to: "/",
           search: { redirect: window.location.pathname },
         })
       },

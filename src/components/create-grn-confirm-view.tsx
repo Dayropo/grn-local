@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table"
 import type { ColumnDef } from "@tanstack/react-table"
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { cn } from "@/lib/utils"
 
 const searchFormSchema = z.object({
   deliveryId: z.string().min(1, "Delivery ID is required"),
@@ -65,6 +66,7 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
   })
 
   const [hasLineItemValues, setHasLineItemValues] = useState(false)
+  const [hasExceedingValues, setHasExceedingValues] = useState(false)
 
   const lineItemColumns: ColumnDef<IDeliveryLineItem>[] = useMemo(
     () => [
@@ -141,7 +143,12 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
                 <FormControl>
                   <Input
                     placeholder="0"
-                    className="h-9 w-24"
+                    className={cn(
+                      "h-9 w-24",
+                      field.value &&
+                        parseFloat(field.value) > (row.original.quantity_outstanding || 0) &&
+                        "border-red-500 focus-visible:ring-red-500",
+                    )}
                     disabled={row.original.is_fully_received}
                     {...field}
                     onChange={event => {
@@ -150,6 +157,10 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
                     }}
                   />
                 </FormControl>
+                {field.value &&
+                  parseFloat(field.value) > (row.original.quantity_outstanding || 0) && (
+                    <p className="text-xs text-red-500">Exceeds outstanding</p>
+                  )}
                 <FormMessage />
               </FormItem>
             )}
@@ -169,21 +180,30 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
   useEffect(() => {
     const subscription = receiptForm.watch(data => {
       const lineItems = data.lineItems || {}
-      const lineItemCount = delivery?.line_items?.length || 0
-      const filledItemCount = Object.values(lineItems).filter(
-        value => value && value.toString().trim() !== "",
-      ).length
-      setHasLineItemValues(lineItemCount > 0 && filledItemCount === lineItemCount)
+      const editableItems = delivery?.line_items?.filter(item => !item.is_fully_received) || []
+      const editableCount = editableItems.length
+      const filledItemCount = editableItems.filter(item => {
+        const value = lineItems[item.product_id]
+        return value !== undefined && value.toString().trim() !== ""
+      }).length
+      setHasLineItemValues(editableCount > 0 && filledItemCount === editableCount)
+
+      const exceeding = editableItems.some(item => {
+        const value = lineItems[item.product_id]
+        return value && parseFloat(value) > (item.quantity_outstanding || 0)
+      })
+      setHasExceedingValues(exceeding)
     })
     return () => subscription.unsubscribe()
-  }, [receiptForm, delivery?.line_items?.length])
+  }, [receiptForm, delivery?.line_items])
 
   const handlePreview = (data: ReceiptFormValues) => {
     if (delivery) {
       const submittedData: ReceiptFormDataSubmitted = {
         lineItems: Object.entries(data.lineItems).reduce(
           (acc, [key, value]) => {
-            acc[key] = value === "" ? 0 : parseFloat(value)
+            const parsed = parseFloat(value)
+            acc[key] = isNaN(parsed) ? 0 : parsed
             return acc
           },
           {} as Record<string, number>,
@@ -346,6 +366,17 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
         </p>
       </div>
 
+      {/* Pending Approval Warning */}
+      {delivery.has_pending_approval && (
+        <div className="flex gap-3 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 text-yellow-600" />
+          <p className="text-sm text-yellow-800">
+            This delivery has a receipt pending approval. You cannot create a new receipt until the
+            pending receipt has been approved or rejected.
+          </p>
+        </div>
+      )}
+
       {/* Receipt Form */}
       <Form {...receiptForm}>
         <form onSubmit={receiptForm.handleSubmit(handlePreview)} className="space-y-6">
@@ -415,7 +446,10 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
 
           {/* Preview Button */}
           <div className="flex justify-end">
-            <Button type="submit" disabled={!hasLineItemValues}>
+            <Button
+              type="submit"
+              disabled={!hasLineItemValues || hasExceedingValues || delivery.has_pending_approval}
+            >
               Preview GRN
             </Button>
           </div>

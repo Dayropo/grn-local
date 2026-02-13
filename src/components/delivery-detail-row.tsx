@@ -140,23 +140,30 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
               <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
                 Confirmation Status:
                 <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    !delivery.receipts?.length
-                      ? "bg-gray-100 text-gray-800"
-                      : delivery.has_pending_approval
-                        ? "bg-yellow-100 text-yellow-800"
-                        : delivery.latest_receipt_status?.status === "rejected"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-green-100 text-green-800"
-                  }`}
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${(() => {
+                    const latestReceipt = delivery.receipts?.length
+                      ? delivery.receipts.reduce((latest, r) => (r.id > latest.id ? r : latest))
+                      : null
+                    const latestStatus =
+                      latestReceipt?.approval_status || delivery.latest_receipt_status?.status
+                    if (!latestReceipt && !delivery.latest_receipt_status)
+                      return "bg-gray-100 text-gray-800"
+                    if (delivery.has_pending_approval) return "bg-yellow-100 text-yellow-800"
+                    if (latestStatus === "rejected") return "bg-red-100 text-red-800"
+                    return "bg-green-100 text-green-800"
+                  })()}`}
                 >
-                  {!delivery.receipts?.length
-                    ? "No Receipt"
-                    : delivery.has_pending_approval
-                      ? "Awaiting Approval"
-                      : delivery.latest_receipt_status?.status === "rejected"
-                        ? "Rejected"
-                        : "Approved"}
+                  {(() => {
+                    const latestReceipt = delivery.receipts?.length
+                      ? delivery.receipts.reduce((latest, r) => (r.id > latest.id ? r : latest))
+                      : null
+                    const latestStatus =
+                      latestReceipt?.approval_status || delivery.latest_receipt_status?.status
+                    if (!latestReceipt && !delivery.latest_receipt_status) return "No Receipt"
+                    if (delivery.has_pending_approval) return "Awaiting Approval"
+                    if (latestStatus === "rejected") return "Rejected"
+                    return "Approved"
+                  })()}
                 </span>
               </div>
             )}
