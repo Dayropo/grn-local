@@ -9,27 +9,264 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProtectedViewGrnRouteRouteImport } from './routes/_protected/view-grn/route'
+import { Route as ProtectedViewGrnIndexRouteImport } from './routes/_protected/view-grn/index'
+import { Route as ProtectedStoreReportIndexRouteImport } from './routes/_protected/store-report/index'
+import { Route as ProtectedGrnHistoryIndexRouteImport } from './routes/_protected/grn-history/index'
+import { Route as ProtectedCreateGrnIndexRouteImport } from './routes/_protected/create-grn/index'
+import { Route as ProtectedViewGrnSearchIndexRouteImport } from './routes/_protected/view-grn/search/index'
+import { Route as ProtectedViewGrnPendingApprovalsIndexRouteImport } from './routes/_protected/view-grn/pending-approvals/index'
+import { Route as ProtectedDeliveryDeliveryIdIndexRouteImport } from './routes/_protected/delivery/$deliveryId/index'
 
-export interface FileRoutesByFullPath {}
-export interface FileRoutesByTo {}
+const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
+  id: '/_protected',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedViewGrnRouteRoute = ProtectedViewGrnRouteRouteImport.update({
+  id: '/view-grn',
+  path: '/view-grn',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
+const ProtectedViewGrnIndexRoute = ProtectedViewGrnIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProtectedViewGrnRouteRoute,
+} as any)
+const ProtectedStoreReportIndexRoute =
+  ProtectedStoreReportIndexRouteImport.update({
+    id: '/store-report/',
+    path: '/store-report/',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
+const ProtectedGrnHistoryIndexRoute =
+  ProtectedGrnHistoryIndexRouteImport.update({
+    id: '/grn-history/',
+    path: '/grn-history/',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
+const ProtectedCreateGrnIndexRoute = ProtectedCreateGrnIndexRouteImport.update({
+  id: '/create-grn/',
+  path: '/create-grn/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
+const ProtectedViewGrnSearchIndexRoute =
+  ProtectedViewGrnSearchIndexRouteImport.update({
+    id: '/search/',
+    path: '/search/',
+    getParentRoute: () => ProtectedViewGrnRouteRoute,
+  } as any)
+const ProtectedViewGrnPendingApprovalsIndexRoute =
+  ProtectedViewGrnPendingApprovalsIndexRouteImport.update({
+    id: '/pending-approvals/',
+    path: '/pending-approvals/',
+    getParentRoute: () => ProtectedViewGrnRouteRoute,
+  } as any)
+const ProtectedDeliveryDeliveryIdIndexRoute =
+  ProtectedDeliveryDeliveryIdIndexRouteImport.update({
+    id: '/delivery/$deliveryId/',
+    path: '/delivery/$deliveryId/',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
+
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
+  '/view-grn': typeof ProtectedViewGrnRouteRouteWithChildren
+  '/create-grn': typeof ProtectedCreateGrnIndexRoute
+  '/grn-history': typeof ProtectedGrnHistoryIndexRoute
+  '/store-report': typeof ProtectedStoreReportIndexRoute
+  '/view-grn/': typeof ProtectedViewGrnIndexRoute
+  '/delivery/$deliveryId': typeof ProtectedDeliveryDeliveryIdIndexRoute
+  '/view-grn/pending-approvals': typeof ProtectedViewGrnPendingApprovalsIndexRoute
+  '/view-grn/search': typeof ProtectedViewGrnSearchIndexRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/create-grn': typeof ProtectedCreateGrnIndexRoute
+  '/grn-history': typeof ProtectedGrnHistoryIndexRoute
+  '/store-report': typeof ProtectedStoreReportIndexRoute
+  '/view-grn': typeof ProtectedViewGrnIndexRoute
+  '/delivery/$deliveryId': typeof ProtectedDeliveryDeliveryIdIndexRoute
+  '/view-grn/pending-approvals': typeof ProtectedViewGrnPendingApprovalsIndexRoute
+  '/view-grn/search': typeof ProtectedViewGrnSearchIndexRoute
+}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/_protected': typeof ProtectedRouteRouteWithChildren
+  '/_protected/view-grn': typeof ProtectedViewGrnRouteRouteWithChildren
+  '/_protected/create-grn/': typeof ProtectedCreateGrnIndexRoute
+  '/_protected/grn-history/': typeof ProtectedGrnHistoryIndexRoute
+  '/_protected/store-report/': typeof ProtectedStoreReportIndexRoute
+  '/_protected/view-grn/': typeof ProtectedViewGrnIndexRoute
+  '/_protected/delivery/$deliveryId/': typeof ProtectedDeliveryDeliveryIdIndexRoute
+  '/_protected/view-grn/pending-approvals/': typeof ProtectedViewGrnPendingApprovalsIndexRoute
+  '/_protected/view-grn/search/': typeof ProtectedViewGrnSearchIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths:
+    | '/'
+    | '/view-grn'
+    | '/create-grn'
+    | '/grn-history'
+    | '/store-report'
+    | '/view-grn/'
+    | '/delivery/$deliveryId'
+    | '/view-grn/pending-approvals'
+    | '/view-grn/search'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to:
+    | '/'
+    | '/create-grn'
+    | '/grn-history'
+    | '/store-report'
+    | '/view-grn'
+    | '/delivery/$deliveryId'
+    | '/view-grn/pending-approvals'
+    | '/view-grn/search'
+  id:
+    | '__root__'
+    | '/'
+    | '/_protected'
+    | '/_protected/view-grn'
+    | '/_protected/create-grn/'
+    | '/_protected/grn-history/'
+    | '/_protected/store-report/'
+    | '/_protected/view-grn/'
+    | '/_protected/delivery/$deliveryId/'
+    | '/_protected/view-grn/pending-approvals/'
+    | '/_protected/view-grn/search/'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
 }
 
-const rootRouteChildren: RootRouteChildren = {}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/_protected': {
+      id: '/_protected'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof ProtectedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/view-grn': {
+      id: '/_protected/view-grn'
+      path: '/view-grn'
+      fullPath: '/view-grn'
+      preLoaderRoute: typeof ProtectedViewGrnRouteRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/view-grn/': {
+      id: '/_protected/view-grn/'
+      path: '/'
+      fullPath: '/view-grn/'
+      preLoaderRoute: typeof ProtectedViewGrnIndexRouteImport
+      parentRoute: typeof ProtectedViewGrnRouteRoute
+    }
+    '/_protected/store-report/': {
+      id: '/_protected/store-report/'
+      path: '/store-report'
+      fullPath: '/store-report'
+      preLoaderRoute: typeof ProtectedStoreReportIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/grn-history/': {
+      id: '/_protected/grn-history/'
+      path: '/grn-history'
+      fullPath: '/grn-history'
+      preLoaderRoute: typeof ProtectedGrnHistoryIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/create-grn/': {
+      id: '/_protected/create-grn/'
+      path: '/create-grn'
+      fullPath: '/create-grn'
+      preLoaderRoute: typeof ProtectedCreateGrnIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/view-grn/search/': {
+      id: '/_protected/view-grn/search/'
+      path: '/search'
+      fullPath: '/view-grn/search'
+      preLoaderRoute: typeof ProtectedViewGrnSearchIndexRouteImport
+      parentRoute: typeof ProtectedViewGrnRouteRoute
+    }
+    '/_protected/view-grn/pending-approvals/': {
+      id: '/_protected/view-grn/pending-approvals/'
+      path: '/pending-approvals'
+      fullPath: '/view-grn/pending-approvals'
+      preLoaderRoute: typeof ProtectedViewGrnPendingApprovalsIndexRouteImport
+      parentRoute: typeof ProtectedViewGrnRouteRoute
+    }
+    '/_protected/delivery/$deliveryId/': {
+      id: '/_protected/delivery/$deliveryId/'
+      path: '/delivery/$deliveryId'
+      fullPath: '/delivery/$deliveryId'
+      preLoaderRoute: typeof ProtectedDeliveryDeliveryIdIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+  }
+}
+
+interface ProtectedViewGrnRouteRouteChildren {
+  ProtectedViewGrnIndexRoute: typeof ProtectedViewGrnIndexRoute
+  ProtectedViewGrnPendingApprovalsIndexRoute: typeof ProtectedViewGrnPendingApprovalsIndexRoute
+  ProtectedViewGrnSearchIndexRoute: typeof ProtectedViewGrnSearchIndexRoute
+}
+
+const ProtectedViewGrnRouteRouteChildren: ProtectedViewGrnRouteRouteChildren = {
+  ProtectedViewGrnIndexRoute: ProtectedViewGrnIndexRoute,
+  ProtectedViewGrnPendingApprovalsIndexRoute:
+    ProtectedViewGrnPendingApprovalsIndexRoute,
+  ProtectedViewGrnSearchIndexRoute: ProtectedViewGrnSearchIndexRoute,
+}
+
+const ProtectedViewGrnRouteRouteWithChildren =
+  ProtectedViewGrnRouteRoute._addFileChildren(
+    ProtectedViewGrnRouteRouteChildren,
+  )
+
+interface ProtectedRouteRouteChildren {
+  ProtectedViewGrnRouteRoute: typeof ProtectedViewGrnRouteRouteWithChildren
+  ProtectedCreateGrnIndexRoute: typeof ProtectedCreateGrnIndexRoute
+  ProtectedGrnHistoryIndexRoute: typeof ProtectedGrnHistoryIndexRoute
+  ProtectedStoreReportIndexRoute: typeof ProtectedStoreReportIndexRoute
+  ProtectedDeliveryDeliveryIdIndexRoute: typeof ProtectedDeliveryDeliveryIdIndexRoute
+}
+
+const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
+  ProtectedViewGrnRouteRoute: ProtectedViewGrnRouteRouteWithChildren,
+  ProtectedCreateGrnIndexRoute: ProtectedCreateGrnIndexRoute,
+  ProtectedGrnHistoryIndexRoute: ProtectedGrnHistoryIndexRoute,
+  ProtectedStoreReportIndexRoute: ProtectedStoreReportIndexRoute,
+  ProtectedDeliveryDeliveryIdIndexRoute: ProtectedDeliveryDeliveryIdIndexRoute,
+}
+
+const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
+  ProtectedRouteRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
