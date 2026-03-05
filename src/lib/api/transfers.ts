@@ -17,7 +17,8 @@ export const useDeliveriesQuery = ({
   source_location_id,
   source_location_name,
   destination_store,
-  delivery_date,
+  delivery_date_from,
+  delivery_date_to,
   delivery_status_code,
   delivery_type_code,
   sales_order_reference,
@@ -28,7 +29,8 @@ export const useDeliveriesQuery = ({
   source_location_id?: number
   source_location_name?: string
   destination_store?: string
-  delivery_date?: string
+  delivery_date_from?: string
+  delivery_date_to?: string
   delivery_status_code?: string
   delivery_type_code?: string
   sales_order_reference?: string
@@ -43,7 +45,8 @@ export const useDeliveriesQuery = ({
       source_location_id,
       source_location_name,
       destination_store,
-      delivery_date,
+      delivery_date_from,
+      delivery_date_to,
       delivery_status_code,
       delivery_type_code,
       sales_order_reference,
@@ -58,7 +61,8 @@ export const useDeliveriesQuery = ({
       if (source_location_id) params.append("source_location_id", source_location_id.toString())
       if (source_location_name) params.append("source_location_name", source_location_name)
       if (destination_store) params.append("destination_store", destination_store)
-      if (delivery_date) params.append("delivery_date", delivery_date)
+      if (delivery_date_from) params.append("delivery_date_from", delivery_date_from)
+      if (delivery_date_to) params.append("delivery_date_to", delivery_date_to)
       if (delivery_status_code) params.append("delivery_status_code", delivery_status_code)
       if (delivery_type_code) params.append("delivery_type_code", delivery_type_code)
       if (sales_order_reference) params.append("sales_order_reference", sales_order_reference)
@@ -82,7 +86,8 @@ export const useDeliveriesMutation = () => {
       source_location_id,
       source_location_name,
       destination_store,
-      delivery_date,
+      delivery_date_from,
+      delivery_date_to,
       delivery_status_code,
       delivery_type_code,
       sales_order_reference,
@@ -93,7 +98,8 @@ export const useDeliveriesMutation = () => {
       source_location_id?: number
       source_location_name?: string
       destination_store?: string
-      delivery_date?: string
+      delivery_date_from?: string
+      delivery_date_to?: string
       delivery_status_code?: string
       delivery_type_code?: string
       sales_order_reference?: string
@@ -107,7 +113,8 @@ export const useDeliveriesMutation = () => {
       if (source_location_id) params.append("source_location_id", source_location_id.toString())
       if (source_location_name) params.append("source_location_name", source_location_name)
       if (destination_store) params.append("destination_store", destination_store)
-      if (delivery_date) params.append("delivery_date", delivery_date)
+      if (delivery_date_from) params.append("delivery_date_from", delivery_date_from)
+      if (delivery_date_to) params.append("delivery_date_to", delivery_date_to)
       if (delivery_status_code) params.append("delivery_status_code", delivery_status_code)
       if (delivery_type_code) params.append("delivery_type_code", delivery_type_code)
       if (sales_order_reference) params.append("sales_order_reference", sales_order_reference)
@@ -267,7 +274,8 @@ export const useExportDeliveryMutation = () => {
       source_location_id,
       source_location_name,
       destination_store,
-      delivery_date,
+      delivery_date_from,
+      delivery_date_to,
       delivery_status_code,
       delivery_type_code,
       sales_order_reference,
@@ -276,7 +284,8 @@ export const useExportDeliveryMutation = () => {
       source_location_id?: number
       source_location_name?: string
       destination_store?: string
-      delivery_date?: string
+      delivery_date_from?: string
+      delivery_date_to?: string
       delivery_status_code?: string
       delivery_type_code?: string
       sales_order_reference?: string
@@ -287,7 +296,8 @@ export const useExportDeliveryMutation = () => {
       if (source_location_id) params.append("source_location_id", source_location_id.toString())
       if (source_location_name) params.append("source_location_name", source_location_name)
       if (destination_store) params.append("destination_store", destination_store)
-      if (delivery_date) params.append("delivery_date", delivery_date)
+      if (delivery_date_from) params.append("delivery_date_from", delivery_date_from)
+      if (delivery_date_to) params.append("delivery_date_to", delivery_date_to)
       if (delivery_status_code) params.append("delivery_status_code", delivery_status_code)
       if (delivery_type_code) params.append("delivery_type_code", delivery_type_code)
       if (sales_order_reference) params.append("sales_order_reference", sales_order_reference)

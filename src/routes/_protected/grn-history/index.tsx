@@ -64,8 +64,10 @@ function GrnHistory() {
   const [debouncedSourceLocationName] = useDebounce(sourceLocationName, 1000)
   const [destinationStore, setDestinationStore] = useState<string>("")
   const [debouncedDestinationStore] = useDebounce(destinationStore, 1000)
-  const [deliveryDate, setDeliveryDate] = useState<string>("")
-  const [debouncedDeliveryDate] = useDebounce(deliveryDate, 1000)
+  const [deliveryDateFrom, setDeliveryDateFrom] = useState<string>("")
+  const [debouncedDeliveryDateFrom] = useDebounce(deliveryDateFrom, 1000)
+  const [deliveryDateTo, setDeliveryDateTo] = useState<string>("")
+  const [debouncedDeliveryDateTo] = useDebounce(deliveryDateTo, 1000)
   const [deliveryStatusCode, setDeliveryStatusCode] = useState<string>("")
   const [debouncedDeliveryStatusCode] = useDebounce(deliveryStatusCode, 1000)
   const [deliveryTypeCode, setDeliveryTypeCode] = useState<string>("")
@@ -99,7 +101,8 @@ function GrnHistory() {
     source_location_id: debouncedSourceLocationId || undefined,
     source_location_name: debouncedSourceLocationName || undefined,
     destination_store: debouncedDestinationStore || undefined,
-    delivery_date: debouncedDeliveryDate || undefined,
+    delivery_date_from: debouncedDeliveryDateFrom || undefined,
+    delivery_date_to: debouncedDeliveryDateTo || undefined,
     delivery_status_code: debouncedDeliveryStatusCode || undefined,
     delivery_type_code: debouncedDeliveryTypeCode || undefined,
     sales_order_reference: debouncedSalesOrderReference || undefined,
@@ -112,7 +115,8 @@ function GrnHistory() {
     setSourceLocationId(values.sourceLocationId ? Number(values.sourceLocationId) : undefined)
     setSourceLocationName(values.sourceLocationName || "")
     setDestinationStore(values.destinationStore || "")
-    setDeliveryDate(values.deliveryDate || "")
+    setDeliveryDateFrom(values.deliveryDateFrom || "")
+    setDeliveryDateTo(values.deliveryDateTo || "")
     setDeliveryStatusCode(values.deliveryStatusCode || "")
     setDeliveryTypeCode(values.deliveryTypeCode || "")
     setSalesOrderReference(values.salesOrderReference || "")
@@ -123,7 +127,8 @@ function GrnHistory() {
     setSourceLocationId(undefined)
     setSourceLocationName("")
     setDestinationStore("")
-    setDeliveryDate("")
+    setDeliveryDateFrom("")
+    setDeliveryDateTo("")
     setDeliveryStatusCode("")
     setDeliveryTypeCode("")
     setSalesOrderReference("")
@@ -135,7 +140,8 @@ function GrnHistory() {
     sourceLocationId ||
     sourceLocationName ||
     destinationStore ||
-    deliveryDate ||
+    deliveryDateFrom ||
+    deliveryDateTo ||
     deliveryStatusCode ||
     deliveryTypeCode ||
     salesOrderReference
@@ -151,7 +157,8 @@ function GrnHistory() {
       label: `Destination: ${destinationStore}`,
       setter: () => setDestinationStore(""),
     },
-    deliveryDate && { label: `Date: ${deliveryDate}`, setter: () => setDeliveryDate(``) },
+    deliveryDateFrom && { label: `Date: ${deliveryDateFrom}`, setter: () => setDeliveryDateFrom(``) },
+    deliveryDateTo && { label: `Date: ${deliveryDateTo}`, setter: () => setDeliveryDateTo(``) },
     deliveryStatusCode && {
       label: `Status: ${deliveryStatusCode}`,
       setter: () => setDeliveryStatusCode(""),
@@ -172,7 +179,8 @@ function GrnHistory() {
         source_location_id: debouncedSourceLocationId || undefined,
         source_location_name: debouncedSourceLocationName || undefined,
         destination_store: debouncedDestinationStore || undefined,
-        delivery_date: debouncedDeliveryDate || undefined,
+        delivery_date_from: debouncedDeliveryDateFrom || undefined,
+        delivery_date_to: debouncedDeliveryDateTo || undefined,
         delivery_status_code: debouncedDeliveryStatusCode || undefined,
         delivery_type_code: debouncedDeliveryTypeCode || undefined,
         sales_order_reference: debouncedSalesOrderReference || undefined,

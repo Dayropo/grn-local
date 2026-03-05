@@ -22,7 +22,8 @@ function SearchDeliveriesPage() {
     delivery_id?: number
     source_location_name?: string
     destination_store?: string
-    delivery_date?: string
+    delivery_date_from?: string
+    delivery_date_to?: string
     delivery_status_code?: string
   }>({})
   const [results, setResults] = useState<IDelivery[]>([])
@@ -40,7 +41,8 @@ function SearchDeliveriesPage() {
           delivery_id: searchFilters.delivery_id,
           source_location_name: searchFilters.source_location_name,
           destination_store: searchFilters.destination_store,
-          delivery_date: searchFilters.delivery_date,
+          delivery_date_from: searchFilters.delivery_date_from,
+          delivery_date_to: searchFilters.delivery_date_to,
           delivery_status_code: searchFilters.delivery_status_code,
         },
         {
@@ -71,7 +73,8 @@ function SearchDeliveriesPage() {
       deliveryId?: number
       sourceLocationName?: string
       destinationStore?: string
-      deliveryDate?: string
+      deliveryDateFrom?: string
+      deliveryDateTo?: string
       deliveryStatusCode?: string
     }) => {
       setError(null)
@@ -80,7 +83,8 @@ function SearchDeliveriesPage() {
         delivery_id: searchFilters.deliveryId,
         source_location_name: searchFilters.sourceLocationName,
         destination_store: searchFilters.destinationStore,
-        delivery_date: searchFilters.deliveryDate,
+        delivery_date_from: searchFilters.deliveryDateFrom,
+        delivery_date_to: searchFilters.deliveryDateTo,
         delivery_status_code: searchFilters.deliveryStatusCode,
       }
       setFilters(newFilters)
@@ -110,7 +114,8 @@ function SearchDeliveriesPage() {
       {
         source_location_name: filters.source_location_name,
         destination_store: filters.destination_store,
-        delivery_date: filters.delivery_date,
+        delivery_date_from: filters.delivery_date_from,
+        delivery_date_to: filters.delivery_date_to,
         delivery_status_code: filters.delivery_status_code,
         delivery_id: filters.delivery_id,
       },
@@ -144,6 +149,7 @@ function SearchDeliveriesPage() {
       {currentView === "list" && (
         <ViewGrnListView
           results={results}
+          totalItems={totalItems}
           onSelectGrn={handleSelectGrn}
           onBackToSearch={handleBackToSearch}
           onExport={handleExport}

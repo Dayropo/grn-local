@@ -22,7 +22,8 @@ const filterFormSchema = z.object({
   sourceLocationId: z.string().optional(),
   sourceLocationName: z.string().optional(),
   destinationStore: z.string().optional(),
-  deliveryDate: z.string().optional(),
+  deliveryDateFrom: z.string().optional(),
+  deliveryDateTo: z.string().optional(),
   deliveryStatusCode: z.string().optional(),
   deliveryTypeCode: z.string().optional(),
   salesOrderReference: z.string().optional(),
@@ -60,7 +61,8 @@ export const GrnHistoryFilterForm: React.FC<GrnHistoryFilterFormProps> = ({
       sourceLocationId: "",
       sourceLocationName: "",
       destinationStore: "",
-      deliveryDate: "",
+      deliveryDateFrom: "",
+      deliveryDateTo: "",
       deliveryStatusCode: "",
       deliveryTypeCode: "",
       salesOrderReference: "",
@@ -69,17 +71,50 @@ export const GrnHistoryFilterForm: React.FC<GrnHistoryFilterFormProps> = ({
 
   React.useEffect(() => {
     if (resetTrigger !== undefined) {
-      form.reset()
+      form.reset({
+        deliveryId: "",
+        sourceLocationId: "",
+        sourceLocationName: "",
+        destinationStore: "",
+        deliveryDateFrom: "",
+        deliveryDateTo: "",
+        deliveryStatusCode: "",
+        deliveryTypeCode: "",
+        salesOrderReference: "",
+      })
     }
   }, [resetTrigger, form])
 
-  const handleDateSelect = (date: Date | undefined) => {
-    form.setValue("deliveryDate", date ? format(date, "yyyy-MM-dd") : "")
-    setIsDatePickerOpen(false)
+  const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (!range?.from) {
+      form.setValue("deliveryDateFrom", "")
+      form.setValue("deliveryDateTo", "")
+      return
+    }
+
+    const sameDay = range.from && range.to && range.from.getTime() === range.to.getTime()
+
+    form.setValue("deliveryDateFrom", format(range.from, "yyyy-MM-dd"))
+    form.setValue("deliveryDateTo", sameDay ? "" : range.to ? format(range.to, "yyyy-MM-dd") : "")
+
+    if (range?.from && range?.to && !sameDay) {
+      setIsDatePickerOpen(false)
+    }
   }
+
+  const deliveryDateFrom = form.watch("deliveryDateFrom")
+  const deliveryDateTo = form.watch("deliveryDateTo")
 
   React.useEffect(() => {
     const subscription = form.watch(values => {
+      const hasDateFrom = values.deliveryDateFrom
+      const hasDateTo = values.deliveryDateTo
+      const hasPartialDateRange = (hasDateFrom && !hasDateTo) || (!hasDateFrom && hasDateTo)
+
+      if (hasPartialDateRange) {
+        return
+      }
+
       onSubmit(values as FilterFormValues)
     })
     return () => subscription.unsubscribe()
@@ -139,28 +174,34 @@ export const GrnHistoryFilterForm: React.FC<GrnHistoryFilterFormProps> = ({
             )}
           />
 
-          {/* Delivery Date Filter */}
+          {/* Delivery Date Range Filter */}
           <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" className="h-9 w-full justify-start text-left font-normal">
                 <Calendar className="mr-2 size-4" />
                 {(() => {
-                  const date = form.getValues("deliveryDate")
-                  if (date) {
-                    return format(new Date(date), "LLL dd, y")
+                  const from = form.getValues("deliveryDateFrom")
+                  const to = form.getValues("deliveryDateTo")
+                  if (from && to) {
+                    return `${format(new Date(from), "LLL dd, y")} - ${format(new Date(to), "LLL dd, y")}`
                   }
-                  return <span>Pick a date</span>
+                  if (from) {
+                    return `From ${format(new Date(from), "LLL dd, y")}`
+                  }
+                  return <span>Pick a date range</span>
                 })()}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
               <CalendarComponent
-                mode="single"
-                selected={(() => {
-                  const date = form.getValues("deliveryDate")
-                  return date ? new Date(date) : undefined
-                })()}
+                mode="range"
+                defaultMonth={deliveryDateFrom ? new Date(deliveryDateFrom) : undefined}
+                selected={{
+                  from: deliveryDateFrom ? new Date(deliveryDateFrom) : undefined,
+                  to: deliveryDateTo ? new Date(deliveryDateTo) : undefined,
+                }}
                 onSelect={handleDateSelect}
+                numberOfMonths={2}
               />
             </PopoverContent>
           </Popover>

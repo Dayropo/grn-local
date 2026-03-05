@@ -25,6 +25,7 @@ import Pagination from "@/components/pagination"
 
 interface ViewGrnListViewProps {
   results: IDelivery[]
+  totalItems: number
   onSelectGrn: (grn: IDelivery) => void
   onBackToSearch: () => void
   onExport?: () => void
@@ -39,6 +40,7 @@ interface ViewGrnListViewProps {
 
 export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
   results,
+  totalItems,
   onSelectGrn,
   onBackToSearch,
   onExport,
@@ -218,7 +220,7 @@ export const ViewGrnListView: React.FC<ViewGrnListViewProps> = ({
     <div className="space-y-6 rounded-xl bg-white p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">GRNs Found</h2>
+          <h2 className="text-xl font-bold text-gray-900">{totalItems} GRNs Found</h2>
         </div>
         <div className="flex items-center gap-2">
           {onExport && (

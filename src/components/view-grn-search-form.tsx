@@ -22,7 +22,8 @@ const searchFormSchema = z.object({
   deliveryId: z.string().optional(),
   sourceLocationName: z.string().optional(),
   destinationStore: z.string().optional(),
-  deliveryDate: z.string().optional(),
+  deliveryDateFrom: z.string().optional(),
+  deliveryDateTo: z.string().optional(),
   deliveryStatusCode: z.string().optional(),
 })
 
@@ -40,7 +41,8 @@ interface ViewGrnSearchFormProps {
     deliveryId?: number
     sourceLocationName?: string
     destinationStore?: string
-    deliveryDate?: string
+    deliveryDateFrom?: string
+    deliveryDateTo?: string
     deliveryStatusCode?: string
   }) => void
   isLoading: boolean
@@ -60,22 +62,39 @@ export const ViewGrnSearchForm: React.FC<ViewGrnSearchFormProps> = ({
       deliveryId: "",
       sourceLocationName: "",
       destinationStore: "",
-      deliveryDate: "",
+      deliveryDateFrom: "",
+      deliveryDateTo: "",
       deliveryStatusCode: "",
     },
   })
 
-  const handleDateSelect = (date: Date | undefined) => {
-    form.setValue("deliveryDate", date ? format(date, "yyyy-MM-dd") : "")
-    setIsDatePickerOpen(false)
+  const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (!range?.from) {
+      form.setValue("deliveryDateFrom", "")
+      form.setValue("deliveryDateTo", "")
+      return
+    }
+
+    const sameDay = range.from && range.to && range.from.getTime() === range.to.getTime()
+
+    form.setValue("deliveryDateFrom", format(range.from, "yyyy-MM-dd"))
+    form.setValue("deliveryDateTo", sameDay ? "" : range.to ? format(range.to, "yyyy-MM-dd") : "")
+
+    if (range?.from && range?.to && !sameDay) {
+      setIsDatePickerOpen(false)
+    }
   }
+
+  const deliveryDateFrom = form.watch("deliveryDateFrom")
+  const deliveryDateTo = form.watch("deliveryDateTo")
 
   const handleSubmit = (data: SearchFormValues) => {
     onSubmit({
       deliveryId: data.deliveryId ? parseInt(data.deliveryId) : undefined,
       sourceLocationName: data.sourceLocationName || undefined,
       destinationStore: data.destinationStore || undefined,
-      deliveryDate: data.deliveryDate || undefined,
+      deliveryDateFrom: data.deliveryDateFrom || undefined,
+      deliveryDateTo: data.deliveryDateTo || undefined,
       deliveryStatusCode: data.deliveryStatusCode || undefined,
     })
   }
@@ -159,7 +178,7 @@ export const ViewGrnSearchForm: React.FC<ViewGrnSearchFormProps> = ({
               )}
             />
 
-            {/* Delivery Date Filter */}
+            {/* Delivery Date Range Filter */}
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -169,22 +188,28 @@ export const ViewGrnSearchForm: React.FC<ViewGrnSearchFormProps> = ({
                 >
                   <Calendar className="mr-2 size-4" />
                   {(() => {
-                    const date = form.getValues("deliveryDate")
-                    if (date) {
-                      return format(new Date(date), "LLL dd, y")
+                    const from = form.getValues("deliveryDateFrom")
+                    const to = form.getValues("deliveryDateTo")
+                    if (from && to) {
+                      return `${format(new Date(from), "LLL dd, y")} - ${format(new Date(to), "LLL dd, y")}`
                     }
-                    return <span>Pick a date</span>
+                    if (from) {
+                      return `From ${format(new Date(from), "LLL dd, y")}`
+                    }
+                    return <span>Pick a date range</span>
                   })()}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
                 <CalendarComponent
-                  mode="single"
-                  selected={(() => {
-                    const date = form.getValues("deliveryDate")
-                    return date ? new Date(date) : undefined
-                  })()}
+                  mode="range"
+                  defaultMonth={deliveryDateFrom ? new Date(deliveryDateFrom) : undefined}
+                  selected={{
+                    from: deliveryDateFrom ? new Date(deliveryDateFrom) : undefined,
+                    to: deliveryDateTo ? new Date(deliveryDateTo) : undefined,
+                  }}
                   onSelect={handleDateSelect}
+                  numberOfMonths={2}
                 />
               </PopoverContent>
             </Popover>

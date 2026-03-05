@@ -466,7 +466,7 @@ function DeliveryDetail() {
             </>
           ) : (
             <>
-              {/* <Button onClick={handleRefresh}>Refresh</Button> */}
+              <Button onClick={handleRefresh}>Refresh</Button>
               {showEditButton && (
                 <Button size="sm" variant="outline" onClick={handleStartEdit}>
                   <Edit className="size-4" />
