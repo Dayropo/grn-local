@@ -12,6 +12,7 @@ import { CircleAlert, CircleCheck, CircleX } from "lucide-react"
 
 const router = createRouter({
   routeTree,
+  basepath: "/grn-transfer",
   context: {
     queryClient,
   },
