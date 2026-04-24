@@ -118,7 +118,7 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
         header: "Expected Qty",
         cell: ({ row }) => (
           <div className="font-mono text-sm">
-            {parseFloat(row.original.quantity_expected || "0").toFixed(2)}
+            {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
           </div>
         ),
       },
@@ -127,7 +127,7 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
         header: "Outstanding Qty",
         cell: ({ row }) => (
           <div className="font-mono text-sm font-semibold text-orange-600">
-            {(row.original.quantity_outstanding || 0).toFixed(2)}
+            {(row.original.quantity_outstanding || 0).toFixed(3)}
           </div>
         ),
       },
@@ -152,8 +152,15 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
                     disabled={row.original.is_fully_received}
                     {...field}
                     onChange={event => {
-                      const numericValue = event.target.value.replace(/\D/g, "")
-                      field.onChange(numericValue)
+                      let value = event.target.value.replace(/[^0-9.]/g, "")
+                      const parts = value.split(".")
+                      if (parts.length > 2) {
+                        value = parts[0] + "." + parts.slice(1).join("")
+                      }
+                      if (parts[1]?.length > 3) {
+                        value = parts[0] + "." + parts[1].slice(0, 3)
+                      }
+                      field.onChange(value)
                     }}
                   />
                 </FormControl>

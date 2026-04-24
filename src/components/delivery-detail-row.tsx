@@ -71,7 +71,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
       header: "Expected Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm">
-          {parseFloat(row.original.quantity_expected || "0").toFixed(2)}
+          {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
         </div>
       ),
     },
@@ -80,7 +80,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
       header: "Received Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm font-semibold text-green-600">
-          {parseFloat(row.original.quantity_received || "0").toFixed(2)}
+          {parseFloat(row.original.quantity_received || "0").toFixed(3)}
         </div>
       ),
     },
@@ -91,7 +91,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
         const expected = parseFloat(row.original.quantity_expected || "0")
         const received = parseFloat(row.original.quantity_received || "0")
         const outstanding = expected - received
-        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(2)}</div>
+        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(3)}</div>
       },
     },
     {

@@ -160,7 +160,14 @@ function DeliveryDetail() {
   }
 
   const handleQuantityChange = (lineItemId: number, value: string) => {
-    const numericValue = value.replace(/[^0-9.]/g, "")
+    let numericValue = value.replace(/[^0-9.]/g, "")
+    const parts = numericValue.split(".")
+    if (parts.length > 2) {
+      numericValue = parts[0] + "." + parts.slice(1).join("")
+    }
+    if (parts[1]?.length > 3) {
+      numericValue = parts[0] + "." + parts[1].slice(0, 3)
+    }
     const parsed = parseFloat(numericValue)
     if (!isNaN(parsed)) {
       const lineItem = delivery?.line_items.find(item => item.id === lineItemId)
@@ -222,7 +229,7 @@ function DeliveryDetail() {
       header: "Expected Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm">
-          {parseFloat(row.original.quantity_expected || "0").toFixed(2)}
+          {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
         </div>
       ),
     },
@@ -235,11 +242,11 @@ function DeliveryDetail() {
           // During editing: outstanding = expected - previously approved quantities
           const prevReceived = previouslyReceivedMap[row.original.id] || 0
           const outstanding = expected - prevReceived
-          return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(2)}</div>
+          return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(3)}</div>
         }
         const received = parseFloat(row.original.quantity_received || "0")
         const outstanding = expected - received
-        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(2)}</div>
+        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(3)}</div>
       },
     },
     {
@@ -247,7 +254,7 @@ function DeliveryDetail() {
       header: "Received Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm font-semibold text-green-600">
-          {parseFloat(row.original.quantity_received || "0").toFixed(2)}
+          {parseFloat(row.original.quantity_received || "0").toFixed(3)}
         </div>
       ),
     },
@@ -378,9 +385,9 @@ function DeliveryDetail() {
           item.product_id || "-",
           item.product_name || "-",
           item.unit_of_measurement || "-",
-          expected.toFixed(2),
-          outstanding.toFixed(2),
-          received.toFixed(2),
+          expected.toFixed(3),
+          outstanding.toFixed(3),
+          received.toFixed(3),
           outstanding <= 0 ? "Complete" : received > 0 ? "Partial" : "Pending",
         ]
       }),
@@ -539,13 +546,13 @@ function DeliveryDetail() {
                 <div className="rounded-lg bg-blue-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Expected</p>
                   <p className="mt-1 text-lg font-bold text-blue-600">
-                    {delivery.total_quantity_expected.toFixed(2) || "0.00"}
+                    {delivery.total_quantity_expected.toFixed(3) || "0.00"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-green-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Received</p>
                   <p className="mt-1 text-lg font-bold text-green-600">
-                    {delivery.total_quantity_received.toFixed(2) || "0.00"}
+                    {delivery.total_quantity_received.toFixed(3) || "0.00"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-yellow-50 p-3 text-center">
@@ -554,7 +561,7 @@ function DeliveryDetail() {
                     {(
                       (delivery.total_quantity_expected || 0) -
                       (delivery.total_quantity_received || 0)
-                    ).toFixed(2)}
+                    ).toFixed(3)}
                   </p>
                 </div>
               </div>

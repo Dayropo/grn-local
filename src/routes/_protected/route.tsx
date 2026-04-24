@@ -7,6 +7,8 @@ import Header from "@/layout/header"
 export const Route = createFileRoute("/_protected")({
   beforeLoad: async () => {
     const msalInstance = getMsalInstance()
+    await msalInstance.initialize()
+    await msalInstance.handleRedirectPromise()
     const accounts = msalInstance.getAllAccounts()
     const isAuthenticated = accounts.length > 0
 

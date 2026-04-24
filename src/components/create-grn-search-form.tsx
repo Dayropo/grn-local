@@ -57,7 +57,7 @@ export const CreateGrnSearchForm: React.FC<SearchFormProps> = ({ isLoading, onSu
                       <FormItem className="max-w-xs flex-1">
                         <FormControl>
                           <Input
-                            placeholder="e.g. 44415"
+                            placeholder="Enter Delivery ID e.g. 44415"
                             disabled={isLoading}
                             autoFocus
                             className="h-10 bg-white"

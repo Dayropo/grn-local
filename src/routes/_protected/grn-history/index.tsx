@@ -280,7 +280,7 @@ function GrnHistory() {
           <ArrowUpDown />
         </Button>
       ),
-      cell: ({ row }) => <div className="">{row.original.total_quantity_expected.toFixed(2)}</div>,
+      cell: ({ row }) => <div className="">{row.original.total_quantity_expected.toFixed(3)}</div>,
     },
     {
       accessorKey: "total_quantity_received",
@@ -294,7 +294,7 @@ function GrnHistory() {
           <ArrowUpDown />
         </Button>
       ),
-      cell: ({ row }) => <div className="">{row.original.total_quantity_received.toFixed(2)}</div>,
+      cell: ({ row }) => <div className="">{row.original.total_quantity_received.toFixed(3)}</div>,
     },
     {
       accessorKey: "delivery_date",

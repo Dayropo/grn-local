@@ -151,7 +151,7 @@ export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
         ),
         cell: ({ row }) => (
           <div className="">
-            {row.original.inbound_delivery?.total_quantity_expected.toFixed(2)}
+            {row.original.inbound_delivery?.total_quantity_expected.toFixed(3)}
           </div>
         ),
       },
@@ -169,7 +169,7 @@ export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
         ),
         cell: ({ row }) => (
           <div className="">
-            {row.original.inbound_delivery?.total_quantity_received.toFixed(2)}
+            {row.original.inbound_delivery?.total_quantity_received.toFixed(3)}
           </div>
         ),
       },

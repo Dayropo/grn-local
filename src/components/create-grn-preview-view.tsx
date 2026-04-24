@@ -110,7 +110,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
       header: "Expected Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm">
-          {parseFloat(row.original.quantity_expected || "0").toFixed(2)}
+          {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
         </div>
       ),
     },
@@ -119,7 +119,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
       header: "Outstanding Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm font-semibold text-orange-600">
-          {(row.original.quantity_outstanding || 0).toFixed(2)}
+          {(row.original.quantity_outstanding || 0).toFixed(3)}
         </div>
       ),
     },
@@ -133,7 +133,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
           0
         return (
           <div className="font-mono text-sm font-semibold text-green-600">
-            {receivedQty.toFixed(2)}
+            {receivedQty.toFixed(3)}
           </div>
         )
       },
@@ -242,9 +242,9 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
         item.product_id || "-",
         item.product_name || "-",
         item.unit_of_measurement || "-",
-        parseFloat(item.quantity_expected || "0").toFixed(2),
-        parseFloat(item.quantity_received || "0").toFixed(2),
-        item.quantity_outstanding.toFixed(2),
+        parseFloat(item.quantity_expected || "0").toFixed(3),
+        parseFloat(item.quantity_received || "0").toFixed(3),
+        item.quantity_outstanding.toFixed(3),
         item.is_fully_received
           ? "Complete"
           : parseFloat(item.quantity_received || "0") > 0
@@ -372,7 +372,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
                 <div className="rounded-lg bg-blue-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Expected</p>
                   <p className="mt-1 text-lg font-bold text-blue-600">
-                    {delivery.total_quantity_expected.toFixed(2) || "0.00"}
+                    {delivery.total_quantity_expected.toFixed(3) || "0.00"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-green-50 p-3 text-center">
@@ -384,7 +384,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
                         const newQty = formData.lineItems[item.product_id] || 0
                         return sum + prevReceived + newQty
                       }, 0)
-                      .toFixed(2)}
+                      .toFixed(3)}
                   </p>
                 </div>
                 <div className="rounded-lg bg-yellow-50 p-3 text-center">
@@ -396,7 +396,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
                         const remaining = (item.quantity_outstanding || 0) - newQty
                         return sum + Math.max(remaining, 0)
                       }, 0)
-                      .toFixed(2)}
+                      .toFixed(3)}
                   </p>
                 </div>
               </div>
