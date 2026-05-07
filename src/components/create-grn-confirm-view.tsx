@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table"
 import type { ColumnDef } from "@tanstack/react-table"
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { cn } from "@/lib/utils"
+import { cn, formatQty } from "@/lib/utils"
 
 const searchFormSchema = z.object({
   deliveryId: z.string().min(1, "Delivery ID is required"),
@@ -117,9 +117,7 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
         accessorKey: "quantity_expected",
         header: "Expected Qty",
         cell: ({ row }) => (
-          <div className="font-mono text-sm">
-            {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
-          </div>
+          <div className="font-mono text-sm">{formatQty(row.original.quantity_expected)}</div>
         ),
       },
       {
@@ -127,7 +125,7 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
         header: "Outstanding Qty",
         cell: ({ row }) => (
           <div className="font-mono text-sm font-semibold text-orange-600">
-            {(row.original.quantity_outstanding || 0).toFixed(3)}
+            {formatQty(row.original.quantity_outstanding)}
           </div>
         ),
       },
@@ -156,9 +154,6 @@ export const CreateGrnConfirmView: React.FC<ConfirmViewProps> = ({
                       const parts = value.split(".")
                       if (parts.length > 2) {
                         value = parts[0] + "." + parts.slice(1).join("")
-                      }
-                      if (parts[1]?.length > 3) {
-                        value = parts[0] + "." + parts[1].slice(0, 3)
                       }
                       field.onChange(value)
                     }}

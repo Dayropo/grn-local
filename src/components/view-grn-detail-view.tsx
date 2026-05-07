@@ -17,6 +17,7 @@ import {
 } from "@/lib/api/transfers"
 import { useState } from "react"
 import { toast } from "sonner"
+import { formatQty } from "@/lib/utils"
 
 interface ViewGrnDetailViewProps {
   grn: IDelivery
@@ -123,9 +124,7 @@ export const ViewGrnDetailView: React.FC<ViewGrnDetailViewProps> = ({
       accessorKey: "quantity_expected",
       header: "Expected Qty",
       cell: ({ row }) => (
-        <div className="font-mono text-sm">
-          {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
-        </div>
+        <div className="font-mono text-sm">{formatQty(row.original.quantity_expected)}</div>
       ),
     },
     {
@@ -133,7 +132,7 @@ export const ViewGrnDetailView: React.FC<ViewGrnDetailViewProps> = ({
       header: "Received Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm font-semibold text-green-600">
-          {parseFloat(row.original.quantity_received || "0").toFixed(3)}
+          {formatQty(row.original.quantity_received)}
         </div>
       ),
     },
@@ -251,19 +250,21 @@ export const ViewGrnDetailView: React.FC<ViewGrnDetailViewProps> = ({
               <div className="rounded-lg bg-blue-50 p-3 text-center">
                 <p className="text-xs font-medium text-gray-600">Expected</p>
                 <p className="mt-1 text-lg font-bold text-blue-600">
-                  {grn.total_quantity_expected.toFixed(3) || "0.00"}
+                  {formatQty(grn.total_quantity_expected)}
                 </p>
               </div>
               <div className="rounded-lg bg-yellow-50 p-3 text-center">
                 <p className="text-xs font-medium text-gray-600">Outstanding</p>
                 <p className="mt-1 text-lg font-bold text-yellow-600">
-                  {((grn.total_quantity_expected || 0) - (grn.total_quantity_received || 0)).toFixed(3)}
+                  {formatQty(
+                    (grn.total_quantity_expected || 0) - (grn.total_quantity_received || 0),
+                  )}
                 </p>
               </div>
               <div className="rounded-lg bg-green-50 p-3 text-center">
                 <p className="text-xs font-medium text-gray-600">Received</p>
                 <p className="mt-1 text-lg font-bold text-green-600">
-                  {grn.total_quantity_received.toFixed(3) || "0.00"}
+                  {formatQty(grn.total_quantity_received)}
                 </p>
               </div>
             </div>

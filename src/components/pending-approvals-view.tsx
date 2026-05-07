@@ -28,7 +28,7 @@ import {
   RefreshCw,
   Loader2,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatQty } from "@/lib/utils"
 import { DeliveryDetailRow } from "./delivery-detail-row"
 
 interface PendingApprovalsViewProps {
@@ -151,7 +151,7 @@ export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
         ),
         cell: ({ row }) => (
           <div className="">
-            {row.original.inbound_delivery?.total_quantity_expected.toFixed(3)}
+            {formatQty(row.original.inbound_delivery?.total_quantity_expected)}
           </div>
         ),
       },
@@ -169,7 +169,7 @@ export const PendingApprovalsView: React.FC<PendingApprovalsViewProps> = ({
         ),
         cell: ({ row }) => (
           <div className="">
-            {row.original.inbound_delivery?.total_quantity_received.toFixed(3)}
+            {formatQty(row.original.inbound_delivery?.total_quantity_received)}
           </div>
         ),
       },

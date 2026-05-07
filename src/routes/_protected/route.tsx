@@ -7,12 +7,35 @@ import Header from "@/layout/header"
 export const Route = createFileRoute("/_protected")({
   beforeLoad: async () => {
     const msalInstance = getMsalInstance()
-    await msalInstance.initialize()
-    await msalInstance.handleRedirectPromise()
-    const accounts = msalInstance.getAllAccounts()
-    const isAuthenticated = accounts.length > 0
-
-    if (!isAuthenticated) {
+    
+    try {
+      await msalInstance.initialize()
+      const redirectResponse = await msalInstance.handleRedirectPromise()
+      
+      if (redirectResponse) {
+        msalInstance.setActiveAccount(redirectResponse.account)
+      }
+      
+      const accounts = msalInstance.getAllAccounts()
+      
+      if (accounts.length > 0 && !msalInstance.getActiveAccount()) {
+        msalInstance.setActiveAccount(accounts[0])
+      }
+      
+      const activeAccount = msalInstance.getActiveAccount()
+      const isAuthenticated = activeAccount !== null
+      
+      if (!isAuthenticated) {
+        console.warn("No active account found, redirecting to login")
+        throw redirect({
+          to: "/",
+          search: {
+            redirect: window.location.pathname,
+          },
+        })
+      }
+    } catch (error) {
+      console.error("Auth check error:", error)
       throw redirect({
         to: "/",
         search: {

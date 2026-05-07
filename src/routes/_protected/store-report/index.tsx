@@ -28,7 +28,7 @@ import { GrnHistoryFilterForm } from "@/components/grn-history-filter-form"
 import { DeliveryDetailRow } from "@/components/delivery-detail-row"
 import { toast } from "sonner"
 import Pagination from "@/components/pagination"
-import { cn } from "@/lib/utils"
+import { cn, formatQty } from "@/lib/utils"
 
 export const Route = createFileRoute("/_protected/store-report/")({
   component: StoreReport,
@@ -157,7 +157,10 @@ function StoreReport() {
       label: `Destination: ${destinationStore}`,
       setter: () => setDestinationStore(""),
     },
-    deliveryDateFrom && { label: `Date: ${deliveryDateFrom}`, setter: () => setDeliveryDateFrom(``) },
+    deliveryDateFrom && {
+      label: `Date: ${deliveryDateFrom}`,
+      setter: () => setDeliveryDateFrom(``),
+    },
     deliveryDateTo && { label: `Date: ${deliveryDateTo}`, setter: () => setDeliveryDateTo(``) },
     deliveryStatusCode && {
       label: `Status: ${deliveryStatusCode}`,
@@ -280,7 +283,7 @@ function StoreReport() {
           <ArrowUpDown />
         </Button>
       ),
-      cell: ({ row }) => <div className="">{row.original.total_quantity_expected.toFixed(3)}</div>,
+      cell: ({ row }) => <div className="">{formatQty(row.original.total_quantity_expected)}</div>,
     },
     {
       accessorKey: "total_quantity_received",
@@ -294,7 +297,7 @@ function StoreReport() {
           <ArrowUpDown />
         </Button>
       ),
-      cell: ({ row }) => <div className="">{row.original.total_quantity_received.toFixed(3)}</div>,
+      cell: ({ row }) => <div className="">{formatQty(row.original.total_quantity_received)}</div>,
     },
     {
       accessorKey: "delivery_date",

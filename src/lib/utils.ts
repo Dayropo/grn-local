@@ -5,6 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function formatQty(value: number | string | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "0"
+  const num = typeof value === "number" ? value : parseFloat(value)
+  if (isNaN(num)) return "0"
+  // Round to 8 decimal places to strip float artifacts, then strip trailing zeros
+  return parseFloat(num.toFixed(8)).toString()
+}
+
 export function formatMonetaryValue(value: number): string {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",

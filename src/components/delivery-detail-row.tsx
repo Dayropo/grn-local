@@ -1,4 +1,5 @@
 import { Package } from "lucide-react"
+import { formatQty } from "@/lib/utils"
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import {
   Table,
@@ -70,9 +71,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
       accessorKey: "quantity_expected",
       header: "Expected Qty",
       cell: ({ row }) => (
-        <div className="font-mono text-sm">
-          {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
-        </div>
+        <div className="font-mono text-sm">{formatQty(row.original.quantity_expected)}</div>
       ),
     },
     {
@@ -80,7 +79,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
       header: "Received Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm font-semibold text-green-600">
-          {parseFloat(row.original.quantity_received || "0").toFixed(3)}
+          {formatQty(row.original.quantity_received)}
         </div>
       ),
     },
@@ -91,7 +90,7 @@ export const DeliveryDetailRow: React.FC<DeliveryDetailRowProps> = ({
         const expected = parseFloat(row.original.quantity_expected || "0")
         const received = parseFloat(row.original.quantity_received || "0")
         const outstanding = expected - received
-        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(3)}</div>
+        return <div className="font-mono text-sm text-orange-600">{formatQty(outstanding)}</div>
       },
     },
     {

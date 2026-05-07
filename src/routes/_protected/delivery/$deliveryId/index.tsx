@@ -17,7 +17,7 @@ import {
   Save,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { extractErrorInfo } from "@/lib/utils"
+import { extractErrorInfo, formatQty } from "@/lib/utils"
 import {
   Table,
   TableBody,
@@ -165,9 +165,6 @@ function DeliveryDetail() {
     if (parts.length > 2) {
       numericValue = parts[0] + "." + parts.slice(1).join("")
     }
-    if (parts[1]?.length > 3) {
-      numericValue = parts[0] + "." + parts[1].slice(0, 3)
-    }
     const parsed = parseFloat(numericValue)
     if (!isNaN(parsed)) {
       const lineItem = delivery?.line_items.find(item => item.id === lineItemId)
@@ -228,9 +225,7 @@ function DeliveryDetail() {
       accessorKey: "quantity_expected",
       header: "Expected Qty",
       cell: ({ row }) => (
-        <div className="font-mono text-sm">
-          {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
-        </div>
+        <div className="font-mono text-sm">{formatQty(row.original.quantity_expected)}</div>
       ),
     },
     {
@@ -242,11 +237,11 @@ function DeliveryDetail() {
           // During editing: outstanding = expected - previously approved quantities
           const prevReceived = previouslyReceivedMap[row.original.id] || 0
           const outstanding = expected - prevReceived
-          return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(3)}</div>
+          return <div className="font-mono text-sm text-orange-600">{formatQty(outstanding)}</div>
         }
         const received = parseFloat(row.original.quantity_received || "0")
         const outstanding = expected - received
-        return <div className="font-mono text-sm text-orange-600">{outstanding.toFixed(3)}</div>
+        return <div className="font-mono text-sm text-orange-600">{formatQty(outstanding)}</div>
       },
     },
     {
@@ -254,7 +249,7 @@ function DeliveryDetail() {
       header: "Received Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm font-semibold text-green-600">
-          {parseFloat(row.original.quantity_received || "0").toFixed(3)}
+          {formatQty(row.original.quantity_received)}
         </div>
       ),
     },
@@ -385,9 +380,9 @@ function DeliveryDetail() {
           item.product_id || "-",
           item.product_name || "-",
           item.unit_of_measurement || "-",
-          expected.toFixed(3),
-          outstanding.toFixed(3),
-          received.toFixed(3),
+          formatQty(expected),
+          formatQty(outstanding),
+          formatQty(received),
           outstanding <= 0 ? "Complete" : received > 0 ? "Partial" : "Pending",
         ]
       }),
@@ -546,22 +541,22 @@ function DeliveryDetail() {
                 <div className="rounded-lg bg-blue-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Expected</p>
                   <p className="mt-1 text-lg font-bold text-blue-600">
-                    {delivery.total_quantity_expected.toFixed(3) || "0.00"}
+                    {formatQty(delivery.total_quantity_expected)}
                   </p>
                 </div>
                 <div className="rounded-lg bg-green-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Received</p>
                   <p className="mt-1 text-lg font-bold text-green-600">
-                    {delivery.total_quantity_received.toFixed(3) || "0.00"}
+                    {formatQty(delivery.total_quantity_received)}
                   </p>
                 </div>
                 <div className="rounded-lg bg-yellow-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Outstanding</p>
                   <p className="mt-1 text-lg font-bold text-yellow-600">
-                    {(
+                    {formatQty(
                       (delivery.total_quantity_expected || 0) -
-                      (delivery.total_quantity_received || 0)
-                    ).toFixed(3)}
+                        (delivery.total_quantity_received || 0),
+                    )}
                   </p>
                 </div>
               </div>

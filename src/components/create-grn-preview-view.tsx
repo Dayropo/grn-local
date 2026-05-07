@@ -35,7 +35,7 @@ import {
   type CreateDeliveryReceiptPayload,
 } from "@/lib/api/transfers"
 import { toast } from "sonner"
-import { extractErrorInfo } from "@/lib/utils"
+import { extractErrorInfo, formatQty } from "@/lib/utils"
 import { useNavigate } from "@tanstack/react-router"
 
 export interface ReceiptFormData {
@@ -109,9 +109,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
       accessorKey: "quantity_expected",
       header: "Expected Qty",
       cell: ({ row }) => (
-        <div className="font-mono text-sm">
-          {parseFloat(row.original.quantity_expected || "0").toFixed(3)}
-        </div>
+        <div className="font-mono text-sm">{formatQty(row.original.quantity_expected)}</div>
       ),
     },
     {
@@ -119,7 +117,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
       header: "Outstanding Qty",
       cell: ({ row }) => (
         <div className="font-mono text-sm font-semibold text-orange-600">
-          {(row.original.quantity_outstanding || 0).toFixed(3)}
+          {formatQty(row.original.quantity_outstanding)}
         </div>
       ),
     },
@@ -133,7 +131,7 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
           0
         return (
           <div className="font-mono text-sm font-semibold text-green-600">
-            {receivedQty.toFixed(3)}
+            {formatQty(receivedQty)}
           </div>
         )
       },
@@ -242,9 +240,9 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
         item.product_id || "-",
         item.product_name || "-",
         item.unit_of_measurement || "-",
-        parseFloat(item.quantity_expected || "0").toFixed(3),
-        parseFloat(item.quantity_received || "0").toFixed(3),
-        item.quantity_outstanding.toFixed(3),
+        formatQty(item.quantity_expected),
+        formatQty(item.quantity_outstanding),
+        formatQty(item.quantity_received),
         item.is_fully_received
           ? "Complete"
           : parseFloat(item.quantity_received || "0") > 0
@@ -372,31 +370,31 @@ export const CreateGrnPreviewView: React.FC<PreviewViewProps> = ({
                 <div className="rounded-lg bg-blue-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Expected</p>
                   <p className="mt-1 text-lg font-bold text-blue-600">
-                    {delivery.total_quantity_expected.toFixed(3) || "0.00"}
+                    {formatQty(delivery.total_quantity_expected)}
                   </p>
                 </div>
                 <div className="rounded-lg bg-green-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Received</p>
                   <p className="mt-1 text-lg font-bold text-green-600">
-                    {(delivery.line_items || [])
-                      .reduce((sum, item) => {
+                    {formatQty(
+                      (delivery.line_items || []).reduce((sum, item) => {
                         const prevReceived = parseFloat(item.quantity_received || "0") || 0
                         const newQty = formData.lineItems[item.product_id] || 0
                         return sum + prevReceived + newQty
-                      }, 0)
-                      .toFixed(3)}
+                      }, 0),
+                    )}
                   </p>
                 </div>
                 <div className="rounded-lg bg-yellow-50 p-3 text-center">
                   <p className="text-xs font-medium text-gray-600">Outstanding</p>
                   <p className="mt-1 text-lg font-bold text-yellow-600">
-                    {(delivery.line_items || [])
-                      .reduce((sum, item) => {
+                    {formatQty(
+                      (delivery.line_items || []).reduce((sum, item) => {
                         const newQty = formData.lineItems[item.product_id] || 0
                         const remaining = (item.quantity_outstanding || 0) - newQty
                         return sum + Math.max(remaining, 0)
-                      }, 0)
-                      .toFixed(3)}
+                      }, 0),
+                    )}
                   </p>
                 </div>
               </div>
