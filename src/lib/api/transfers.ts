@@ -75,6 +75,7 @@ export const useDeliveriesQuery = ({
       return data.data as IPaginatedResponse<IDelivery>
     },
     enabled: page > 0 && size > 0,
+    staleTime: 0,
   })
 }
 
@@ -139,6 +140,7 @@ export const useDeliveryQuery = ({ deliveryId }: { deliveryId: string }) => {
       return data.data as IDelivery
     },
     enabled: !!deliveryId,
+    staleTime: 0,
   })
 }
 
@@ -246,6 +248,7 @@ export const usePendingApprovalsQuery = () => {
 
       return data.data as IPaginatedResponse<IPendingApproval>
     },
+    staleTime: 0
   })
 }
 

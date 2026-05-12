@@ -56,6 +56,7 @@ export const Route = createFileRoute("/_protected/delivery/$deliveryId/")({
 
         return data.data as IDelivery
       },
+      staleTime: 0,
     })
   },
 })

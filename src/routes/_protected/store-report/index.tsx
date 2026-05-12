@@ -53,6 +53,7 @@ export const Route = createFileRoute("/_protected/store-report/")({
 
         return data.data as IPaginatedResponse<IDelivery>
       },
+      staleTime: 0
     })
   },
 })

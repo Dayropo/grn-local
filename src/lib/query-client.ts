@@ -6,7 +6,7 @@ export const queryClient = new QueryClient({
       staleTime: 2 * 60 * 1000,
       retry: (failureCount, error) => {
         if (error instanceof Error && error.message.includes("Network")) {
-          return failureCount < 3
+          return failureCount < 2
         }
         return false
       },
